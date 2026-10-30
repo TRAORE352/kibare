@@ -153,6 +153,15 @@ def main():
     create_users(client, headers)
     create_rooms(client, headers)
 
+    # Sauvegarde du jeton du bot dans un fichier (pour que la Console puisse
+    # appeler l'API admin Synapse : révocation, gestion des salons).
+    token_file = os.getenv("TOKEN_OUTPUT_FILE")
+    if token_file:
+        with open(token_file, "w") as f:
+            f.write(token + "\n")
+        os.chmod(token_file, 0o600)
+        print(f"Jeton bot écrit dans {token_file}")
+
     # Le jeton est affiché en dernière ligne, pour capture par demo_seed.sh.
     print(f"BOT_TOKEN={token}")
 
