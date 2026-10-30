@@ -15,6 +15,19 @@ index eaf67e7..1ebd209 100644
  
      <string name="soft_logout_title">You’re signed out</string>
      <string name="soft_logout_signin_title">Sign in</string>
+diff --git a/library/ui-styles/src/main/res/values/palette.xml b/library/ui-styles/src/main/res/values/palette.xml
+index 999dccf..7551f3b 100644
+--- a/library/ui-styles/src/main/res/values/palette.xml
++++ b/library/ui-styles/src/main/res/values/palette.xml
+@@ -16,7 +16,7 @@
+     <color name="palette_polly">#E64F7A</color>
+     <color name="palette_melon">#FF812D</color>
+ 
+-    <color name="palette_element_green">#0DBD8B</color>
++    <color name="palette_element_green">#1F5C3A</color>
+     <color name="palette_element_orange">#D9B072</color>
+     <color name="palette_white">#FFFFFF</color>
+     <color name="palette_vermilion">#FF5B55</color>
 diff --git a/matrix-sdk-android/src/main/res/raw/kibare_ca.pem b/matrix-sdk-android/src/main/res/raw/kibare_ca.pem
 new file mode 100644
 index 0000000..ad60bc0
@@ -394,6 +407,19 @@ index 57d631b..63d1c86 100644
      companion object {
          private const val EXTRA_TITLE = "EXTRA_TITLE"
          private const val EXTRA_IMAGE_URL = "EXTRA_IMAGE_URL"
+diff --git a/vector/src/main/java/im/vector/app/features/onboarding/OnboardingViewModel.kt b/vector/src/main/java/im/vector/app/features/onboarding/OnboardingViewModel.kt
+index d81d55d..71016cc 100644
+--- a/vector/src/main/java/im/vector/app/features/onboarding/OnboardingViewModel.kt
++++ b/vector/src/main/java/im/vector/app/features/onboarding/OnboardingViewModel.kt
+@@ -253,7 +253,7 @@ class OnboardingViewModel @AssistedInject constructor(
+                 else -> openServerSelectionOrDeeplinkToOther()
+             }
+ 
+-            OnboardingFlow.SignInSignUp -> openServerSelectionOrDeeplinkToOther()
++            OnboardingFlow.SignInSignUp -> handle(OnboardingAction.HomeServerChange.SelectHomeServer(deeplinkOrDefaultHomeserverUrl()))
+         }
+     }
+ 
 diff --git a/vector/src/main/java/im/vector/app/features/signout/hard/SignedOutActivity.kt b/vector/src/main/java/im/vector/app/features/signout/hard/SignedOutActivity.kt
 index e6b3b81..ad1b7a8 100644
 --- a/vector/src/main/java/im/vector/app/features/signout/hard/SignedOutActivity.kt
@@ -492,6 +518,26 @@ index a022ad2..beb04f5 100644
  
      <FrameLayout
          android:id="@+id/composerContainer"
+diff --git a/vector/src/main/res/layout/item_timeline_event_file_stub.xml b/vector/src/main/res/layout/item_timeline_event_file_stub.xml
+index 41e4a11..3a958b2 100644
+--- a/vector/src/main/res/layout/item_timeline_event_file_stub.xml
++++ b/vector/src/main/res/layout/item_timeline_event_file_stub.xml
+@@ -48,6 +48,15 @@
+ 
+     </androidx.constraintlayout.widget.ConstraintLayout>
+ 
++    <!-- KIBARÉ : étiquette « Consultation interne uniquement » (section 6.3). -->
++    <TextView
++        style="@style/Widget.Vector.TextView.Caption"
++        android:layout_width="wrap_content"
++        android:layout_height="wrap_content"
++        android:layout_marginTop="2dp"
++        android:text="Consultation interne uniquement"
++        android:textColor="?vctr_content_secondary" />
++
+     <include
+         android:id="@+id/messageFileUploadProgressLayout"
+         layout="@layout/media_upload_download_progress_layout"
 diff --git a/vector/src/main/res/layout/item_timeline_event_text_message_plain_stub.xml b/vector/src/main/res/layout/item_timeline_event_text_message_plain_stub.xml
 index 1d94632..5a8ee58 100644
 --- a/vector/src/main/res/layout/item_timeline_event_text_message_plain_stub.xml
@@ -516,3 +562,21 @@ index 9878f1e..ac4457b 100644
      app:codeBlockBackgroundDrawable="@drawable/bg_code_block"
      app:inlineCodeSingleLineBg="@drawable/bg_inline_code_single_line"
      app:inlineCodeMultiLineBgLeft="@drawable/bg_inline_code_multi_line_left"
+diff --git a/vector/src/main/res/xml/vector_settings_security_privacy.xml b/vector/src/main/res/xml/vector_settings_security_privacy.xml
+index 78e1ba4..2e2bb58 100644
+--- a/vector/src/main/res/xml/vector_settings_security_privacy.xml
++++ b/vector/src/main/res/xml/vector_settings_security_privacy.xml
+@@ -147,11 +147,8 @@
+             android:summary="@string/settings_security_incognito_keyboard_summary"
+             android:title="@string/settings_security_incognito_keyboard_title" />
+ 
+-        <im.vector.app.core.preference.VectorSwitchPreference
+-            android:defaultValue="false"
+-            android:key="SETTINGS_SECURITY_USE_FLAG_SECURE"
+-            android:summary="@string/settings_security_prevent_screenshots_summary"
+-            android:title="@string/settings_security_prevent_screenshots_title" />
++        <!-- KIBARÉ : réglage « Empêcher les captures d'écran » masqué —
++             FLAG_SECURE est désormais forcé (protection « Zéro fuite »). -->
+ 
+     </im.vector.app.core.preference.VectorPreferenceCategory>
+ 

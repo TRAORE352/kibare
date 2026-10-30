@@ -24,6 +24,10 @@ Variante cible : **F-Droid** (flavor `fdroid`), sans aucune bibliothèque Google
 | Sélection de texte désactivée | `.../item_timeline_event_text_message_{plain,rich}_stub.xml` | `android:textIsSelectable="false"` |
 | Inscription retirée | `vector/.../features/VectorFeatures.kt` | `isOnboardingAlreadyHaveAccountSplashEnabled=false` + `isOnboardingCombinedRegisterEnabled=false` |
 | « Ouvrir avec… » retiré | `vector/.../detail/TimelineFragment.kt` (`openFile`) | remplacé par un message « Consultation interne uniquement » |
+| Écran serveur retiré | `vector/.../onboarding/OnboardingViewModel.kt` | `SignInSignUp` → login direct (plus de sélection du serveur) |
+| Réglage FLAG_SECURE masqué | `vector/src/main/res/xml/vector_settings_security_privacy.xml` | préférence « captures d'écran » supprimée |
+| Couleur institutionnelle | `library/ui-styles/.../palette.xml` | vert `#0DBD8B` → `#1F5C3A` |
+| Étiquette pièce jointe | `vector/.../item_timeline_event_file_stub.xml` | « Consultation interne uniquement » |
 
 ## 2. Identité de l'application
 
