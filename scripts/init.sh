@@ -146,6 +146,9 @@ log_ok "realm-kibare.json généré"
 cat > "$REPO_ROOT/.env" <<EOF
 # Généré par scripts/init.sh — ne pas versionner
 KIBARE_SERVER_ADDRESS=${KIBARE_SERVER_ADDRESS}
+# Mots de passe Keycloak (lus par docker compose via \${VAR})
+KEYCLOAK_ADMIN_PASSWORD=$(cat "$SECRETS_DIR/keycloak_admin_password.txt")
+KEYCLOAK_DB_PASSWORD=$(cat "$SECRETS_DIR/keycloak_db_password.txt")
 EOF
 
 chmod 600 "$REPO_ROOT/.env"

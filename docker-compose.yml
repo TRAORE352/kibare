@@ -59,10 +59,12 @@ services:
       - ./caddy/kibare-ca.crt:/usr/local/share/ca-certificates/kibare-ca.crt:ro
     networks:
       - kibare-internal
-    # On met à jour le magasin de certificats (pour la CA locale) puis on démarre
-    command: >
-      sh -c "update-ca-certificates 2>/dev/null || true &&
-             python -m synapse.app.homeserver --config-path /data/homeserver.yaml"
+    # On ajoute la CA locale au magasin de confiance (pour l'OIDC vers Keycloak)
+    # PUIS on démarre Synapse. « entrypoint » (pas « command ») car l'image a
+    # un ENTRYPOINT /start.py qui interpréterait « sh » comme un mode inconnu.
+    entrypoint: ["/bin/sh", "-c"]
+    command:
+      - "update-ca-certificates 2>/dev/null || true; exec python -m synapse.app.homeserver --config-path /data/homeserver.yaml"
     healthcheck:
       test: ["CMD", "curl", "-fsS", "http://localhost:8008/health"]
       interval: 15s
@@ -84,7 +86,7 @@ services:
       KC_DB_URL_HOST: postgres
       KC_DB_URL_DATABASE: keycloak
       KC_DB_USERNAME: keycloak
-      KC_DB_PASSWORD_FILE: /run/secrets/keycloak_db_password
+      KC_DB_PASSWORD: ${KEYCLOAK_DB_PASSWORD}
       # Nom d'hôte public = adresse du serveur (même valeur pour le téléphone
       # et pour Synapse, sinon l'issuer OIDC ne correspond pas).
       KC_HOSTNAME: ${KIBARE_SERVER_ADDRESS:-192.168.10.10}
@@ -97,7 +99,7 @@ services:
       # Préfixe /auth conservé (compatible avec les URL du brief)
       KC_HTTP_RELATIVE_PATH: /auth
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
-      KC_BOOTSTRAP_ADMIN_PASSWORD_FILE: /run/secrets/keycloak_admin_password
+      KC_BOOTSTRAP_ADMIN_PASSWORD: ${KEYCLOAK_ADMIN_PASSWORD}
     secrets:
       - keycloak_db_password
       - keycloak_admin_password
