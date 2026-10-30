@@ -14,8 +14,10 @@ Variante cible : **F-Droid** (flavor `fdroid`), sans aucune bibliothèque Google
 |---|---|---|
 | Identifiant d'application | `vector-app/build.gradle` (~l.146) | `applicationId "org.kibare.app"` |
 | UnifiedPush externe désactivé | `vector-config/.../Config.kt` (~l.31) | `ALLOW_EXTERNAL_UNIFIED_PUSH_DISTRIBUTORS = false` |
-| Blocage captures d'écran forcé | `vector/src/main/java/im/vector/app/core/platform/VectorBaseActivity.kt` (~l.234) | `FLAG_SECURE` inconditionnel (plus de `if`) |
+| Blocage captures d'écran forcé | `vector/src/main/java/im/vector/app/core/platform/VectorBaseActivity.kt` (~l.234) | `FLAG_SECURE` inconditionnel |
 | Nom de l'application | `vector-app/build.gradle` (~l.250, 258) | `resValue ... "app_name"` → « Kibaré » |
+| CA locale intégrée | `matrix-sdk-android/src/main/res/raw/kibare_ca.pem` + `.../xml/network_security_config.xml` | confiance **uniquement** à la CA Kibaré |
+| Copie interdite | `vector/.../timeline/action/MessageActionsViewModel.kt` | `Copy`, `Save`, `Share`, `ViewSource` commentés (voir §5) |
 
 ## 2. Identité de l'application
 
