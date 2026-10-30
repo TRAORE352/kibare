@@ -240,6 +240,26 @@ index 0000000..a02c746
 +    // Ne jamais intercepter les touches : la vue doit être transparente aux clics.
 +    override fun onTouchEvent(event: MotionEvent): Boolean = false
 +}
+diff --git a/vector/src/main/java/im/vector/app/features/VectorFeatures.kt b/vector/src/main/java/im/vector/app/features/VectorFeatures.kt
+index 6d1b975..b612408 100644
+--- a/vector/src/main/java/im/vector/app/features/VectorFeatures.kt
++++ b/vector/src/main/java/im/vector/app/features/VectorFeatures.kt
+@@ -37,11 +37,13 @@ interface VectorFeatures {
+ 
+ class DefaultVectorFeatures : VectorFeatures {
+     override fun onboardingVariant() = Config.ONBOARDING_VARIANT
+-    override fun isOnboardingAlreadyHaveAccountSplashEnabled() = true
++    // KIBARÉ : inscription retirée — seuls les comptes enrôlés se connectent.
++    override fun isOnboardingAlreadyHaveAccountSplashEnabled() = false
+     override fun isOnboardingSplashCarouselEnabled() = true
+     override fun isOnboardingUseCaseEnabled() = true
+     override fun isOnboardingPersonalizeEnabled() = true
+-    override fun isOnboardingCombinedRegisterEnabled() = true
++    // KIBARÉ : inscription retirée — pas d'onglet « Créer un compte ».
++    override fun isOnboardingCombinedRegisterEnabled() = false
+     override fun isOnboardingCombinedLoginEnabled() = true
+     override fun allowExternalUnifiedPushDistributors(): Boolean = Config.ALLOW_EXTERNAL_UNIFIED_PUSH_DISTRIBUTORS
+     override fun isScreenSharingEnabled(): Boolean = true
 diff --git a/vector/src/main/java/im/vector/app/features/home/room/detail/TimelineFragment.kt b/vector/src/main/java/im/vector/app/features/home/room/detail/TimelineFragment.kt
 index 01be29d..9a196d9 100644
 --- a/vector/src/main/java/im/vector/app/features/home/room/detail/TimelineFragment.kt
@@ -400,3 +420,27 @@ index a022ad2..beb04f5 100644
  
      <FrameLayout
          android:id="@+id/composerContainer"
+diff --git a/vector/src/main/res/layout/item_timeline_event_text_message_plain_stub.xml b/vector/src/main/res/layout/item_timeline_event_text_message_plain_stub.xml
+index 1d94632..5a8ee58 100644
+--- a/vector/src/main/res/layout/item_timeline_event_text_message_plain_stub.xml
++++ b/vector/src/main/res/layout/item_timeline_event_text_message_plain_stub.xml
+@@ -6,6 +6,7 @@
+     android:layout_height="wrap_content"
+     android:textAlignment="viewStart"
+     android:textColor="?vctr_content_primary"
++    android:textIsSelectable="false"
+     tools:text="@sample/messages.json/data/message"
+     xmlns:android="http://schemas.android.com/apk/res/android"
+     xmlns:tools="http://schemas.android.com/tools" />
+diff --git a/vector/src/main/res/layout/item_timeline_event_text_message_rich_stub.xml b/vector/src/main/res/layout/item_timeline_event_text_message_rich_stub.xml
+index 9878f1e..ac4457b 100644
+--- a/vector/src/main/res/layout/item_timeline_event_text_message_rich_stub.xml
++++ b/vector/src/main/res/layout/item_timeline_event_text_message_rich_stub.xml
+@@ -8,6 +8,7 @@
+     android:layout_height="wrap_content"
+     android:textAlignment="viewStart"
+     android:textColor="?vctr_content_primary"
++    android:textIsSelectable="false"
+     app:codeBlockBackgroundDrawable="@drawable/bg_code_block"
+     app:inlineCodeSingleLineBg="@drawable/bg_inline_code_single_line"
+     app:inlineCodeMultiLineBgLeft="@drawable/bg_inline_code_multi_line_left"

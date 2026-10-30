@@ -21,6 +21,8 @@ Variante cible : **F-Droid** (flavor `fdroid`), sans aucune bibliothèque Google
 | Effacement à distance | `vector/.../signout/hard/SignedOutActivity.kt` + `.../layout/activity_signed_out.xml` + `library/ui-strings/.../strings.xml` | écran « Accès révoqué » terminal (bouton reconnexion retiré) |
 | Filigrane nominatif | `vector/.../core/ui/views/WatermarkView.kt` + `.../layout/fragment_timeline.xml` + `TimelineFragment.kt` | texte « Nom · Matricule · date » en diagonale, opacité ~7 % |
 | Serveur par défaut fixé | `vector-config/src/main/res/values/config.xml` (`matrix_org_server_url`) | `https://10.228.115.221` (au lieu de matrix.org) |
+| Sélection de texte désactivée | `.../item_timeline_event_text_message_{plain,rich}_stub.xml` | `android:textIsSelectable="false"` |
+| Inscription retirée | `vector/.../features/VectorFeatures.kt` | `isOnboardingAlreadyHaveAccountSplashEnabled=false` + `isOnboardingCombinedRegisterEnabled=false` |
 
 ## 2. Identité de l'application
 
