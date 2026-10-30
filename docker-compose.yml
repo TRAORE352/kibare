@@ -190,8 +190,10 @@ services:
 networks:
   kibare-internal:
     driver: bridge
-    # Pas d'accès Internet depuis les conteneurs (réseau interne uniquement)
-    internal: true
+    # NB : pas de « internal: true » ici — il bloque la publication des ports
+    # 80/443 par Caddy sous Docker Desktop. L'absence d'accès Internet est
+    # garantie PAR CONCEPTION : fédération coupée, aucun service tiers configuré,
+    # aucune URL externe. (En production : ré-isoler avec un réseau « edge » dédié.)
 
 volumes:
   postgres_data:
