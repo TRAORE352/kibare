@@ -94,7 +94,35 @@ Corrections (vérifiées dans la documentation officielle de Synapse 1.164.1) :
   **deux commandes** (`./scripts/init.sh` puis `docker compose up -d`), plus simple
   et expliqué dans le README.
 
-## Vérification NATIVE complète (30 octobre, suite)
+## Déploiement réel sur la machine de l'équipe (30 octobre) — CORRECTIONS
+
+Le `docker compose up -d` sur la machine Docker de l'équipe a révélé et permis de
+corriger les points suivants (tous commités) :
+
+1. **`python-qrcode[pil]` → `qrcode[pil]`** : le paquet PyPI s'appelle `qrcode`
+   (le dépôt GitHub s'appelle `python-qrcode`). Sinon le build de l'image Console échoue.
+2. **Synapse `command` → `entrypoint`** : l'image `matrixdotorg/synapse` a un
+   ENTRYPOINT `/start.py` qui rejetait « sh » (`Unknown execution mode 'sh'`).
+3. **Keycloak `KC_*_FILE` non reconnu** : remplacé par `KC_DB_PASSWORD` et
+   `KC_BOOTSTRAP_ADMIN_PASSWORD` via `${VAR}` depuis `.env` (init.sh les écrit).
+4. **Console `KEYCLOAK_INTERNAL_URL` avec préfixe `/auth`** (404 sinon).
+5. **`internal: true` retiré** : bloquait la publication des ports 80/443 par Caddy
+   sous Docker Desktop.
+6. **Caddy** : HTTP/3 désactivé (port UDP 443 non publié), site `:443` (catch-all)
+   au lieu de l'IP (connexion par IP = pas de SNI + NAT Docker), et
+   `redir * /console/ 302` (la forme `redir /x 302` = legacy « from→to »).
+7. **Certificat serveur `keyUsage` = `digitalSignature, keyEncipherment`**
+   (sinon `ERR_SSL_KEY_USAGE_INCOMPATIBLE`).
+8. **Realm Keycloak réimporté** avec la bonne IP (il faut supprimer la base
+   `keycloak` de PostgreSQL, pas seulement le volume, car le realm vit dans Postgres).
+9. **Peuplement de la table `agents` de la Console** (`services/seed.py`) : les
+   comptes de démo sont définis dans Keycloak mais la Console a sa propre table.
+10. **Flux OIDC manuel** (httpx) + **cookie signé** (itsdangerous) : le cookie de
+    session Starlette n'était pas renvoyé via Keycloak (boucle `ERR_TOO_MANY_REDIRECTS`),
+    et l'endpoint `userinfo` renvoyait 401 → on lit `preferred_username` dans l'`id_token`.
+
+**État final : la plateforme serveur + Console est FONCTIONNELLE de bout en bout**
+(HTTPS, OIDC, OTP, autorisation, tableau des agents).
 
 En lançant Synapse 1.164.1 (sqlite) et Keycloak 26.8.1 **directement** (sans
 Docker), j'ai vérifié la chaîne serveur de bout en bout :
