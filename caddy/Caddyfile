@@ -70,7 +70,7 @@
 
     # Racine : redirection vers la console
     handle {
-        redir /console/ 302
+        redir * /console/ 302
     }
 
     # Logs structurés JSON (jamais le contenu des messages)
