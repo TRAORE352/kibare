@@ -34,8 +34,9 @@ class Settings(BaseSettings):
     # Keycloak
     # ------------------------------------------------------------------
     KEYCLOAK_REALM: str = "kibare"
-    # URL interne : utilisée côté serveur (API admin, échange de code, userinfo)
-    KEYCLOAK_INTERNAL_URL: str = "http://keycloak:8080"
+    # URL interne : utilisée côté serveur (API admin, échange de code, userinfo).
+    # Le préfixe /auth est OBLIGATOIRE (KC_HTTP_RELATIVE_PATH=/auth côté Keycloak).
+    KEYCLOAK_INTERNAL_URL: str = "http://keycloak:8080/auth"
     # URL publique : utilisée par le NAVIGATEUR de l'admin (redirection de login)
     KEYCLOAK_PUBLIC_URL: str = "https://192.168.10.10/auth"
     KEYCLOAK_ADMIN_USER: str = "admin"
