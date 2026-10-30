@@ -1,0 +1,4 @@
+[submodule "android"]
+	path = android
+	url = https://github.com/EQUIPE/kibare-android.git
+	branch = main
