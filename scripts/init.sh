@@ -91,7 +91,9 @@ prompt = no
 CN = ${KIBARE_SERVER_ADDRESS}
 
 [v3_req]
-keyUsage = keyEncipherment, dataEncipherment
+# digitalSignature : requis pour le handshake TLS moderne (ECDHE/DHE)
+# keyEncipherment : pour l'échange de clé RSA (compatibilité)
+keyUsage = digitalSignature, keyEncipherment
 extendedKeyUsage = serverAuth
 subjectAltName = @alt_names
 
