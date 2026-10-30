@@ -15,6 +15,32 @@ index eaf67e7..1ebd209 100644
  
      <string name="soft_logout_title">You’re signed out</string>
      <string name="soft_logout_signin_title">Sign in</string>
+diff --git a/library/ui-styles/src/main/res/font/ibm_plex_sans.xml b/library/ui-styles/src/main/res/font/ibm_plex_sans.xml
+new file mode 100644
+index 0000000..ef28fa9
+--- /dev/null
++++ b/library/ui-styles/src/main/res/font/ibm_plex_sans.xml
+@@ -0,0 +1,12 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!-- KIBARÉ : famille de polices IBM Plex Sans (SIL OFL 1.1). -->
++<font-family xmlns:android="http://schemas.android.com/apk/res/android">
++    <font
++        android:fontStyle="normal"
++        android:fontWeight="400"
++        android:font="@font/ibm_plex_sans_regular" />
++    <font
++        android:fontStyle="normal"
++        android:fontWeight="700"
++        android:font="@font/ibm_plex_sans_bold" />
++</font-family>
+diff --git a/library/ui-styles/src/main/res/font/ibm_plex_sans_bold.ttf b/library/ui-styles/src/main/res/font/ibm_plex_sans_bold.ttf
+new file mode 100644
+index 0000000..1d66b1a
+Binary files /dev/null and b/library/ui-styles/src/main/res/font/ibm_plex_sans_bold.ttf differ
+diff --git a/library/ui-styles/src/main/res/font/ibm_plex_sans_regular.ttf b/library/ui-styles/src/main/res/font/ibm_plex_sans_regular.ttf
+new file mode 100644
+index 0000000..bd6817d
+Binary files /dev/null and b/library/ui-styles/src/main/res/font/ibm_plex_sans_regular.ttf differ
 diff --git a/library/ui-styles/src/main/res/values/palette.xml b/library/ui-styles/src/main/res/values/palette.xml
 index 999dccf..7551f3b 100644
 --- a/library/ui-styles/src/main/res/values/palette.xml
@@ -28,6 +54,19 @@ index 999dccf..7551f3b 100644
      <color name="palette_element_orange">#D9B072</color>
      <color name="palette_white">#FFFFFF</color>
      <color name="palette_vermilion">#FF5B55</color>
+diff --git a/library/ui-styles/src/main/res/values/theme_light.xml b/library/ui-styles/src/main/res/values/theme_light.xml
+index 68a0e8a..faca062 100644
+--- a/library/ui-styles/src/main/res/values/theme_light.xml
++++ b/library/ui-styles/src/main/res/values/theme_light.xml
+@@ -4,6 +4,8 @@
+     <!-- LIGHT THEME COLORS -->
+ 
+     <style name="Base.Theme.Vector.Light" parent="Theme.MaterialComponents.Light.NoActionBar">
++        <!-- KIBARÉ : police IBM Plex Sans (SIL OFL 1.1). -->
++        <item name="fontFamily">@font/ibm_plex_sans</item>
+         <!-- Element attribute for palette -->
+         <!-- content colors -->
+         <item name="vctr_content_primary">@color/element_content_primary_light</item>
 diff --git a/matrix-sdk-android/src/main/res/raw/kibare_ca.pem b/matrix-sdk-android/src/main/res/raw/kibare_ca.pem
 new file mode 100644
 index 0000000..ad60bc0
@@ -130,6 +169,46 @@ index e5be259..c007e2d 100644
              postprocessing {
                  // FIXME Set to true.
                  removeUnusedCode false
+diff --git a/vector-app/src/main/res/mipmap-hdpi/ic_launcher.png b/vector-app/src/main/res/mipmap-hdpi/ic_launcher.png
+index 61989aa..28ee3ee 100644
+Binary files a/vector-app/src/main/res/mipmap-hdpi/ic_launcher.png and b/vector-app/src/main/res/mipmap-hdpi/ic_launcher.png differ
+diff --git a/vector-app/src/main/res/mipmap-hdpi/ic_launcher_round.png b/vector-app/src/main/res/mipmap-hdpi/ic_launcher_round.png
+index 1e70007..033ccb2 100644
+Binary files a/vector-app/src/main/res/mipmap-hdpi/ic_launcher_round.png and b/vector-app/src/main/res/mipmap-hdpi/ic_launcher_round.png differ
+diff --git a/vector-app/src/main/res/mipmap-mdpi/ic_launcher.png b/vector-app/src/main/res/mipmap-mdpi/ic_launcher.png
+index a8cb127..81aa759 100644
+Binary files a/vector-app/src/main/res/mipmap-mdpi/ic_launcher.png and b/vector-app/src/main/res/mipmap-mdpi/ic_launcher.png differ
+diff --git a/vector-app/src/main/res/mipmap-mdpi/ic_launcher_round.png b/vector-app/src/main/res/mipmap-mdpi/ic_launcher_round.png
+index a84a5c7..8982bd8 100644
+Binary files a/vector-app/src/main/res/mipmap-mdpi/ic_launcher_round.png and b/vector-app/src/main/res/mipmap-mdpi/ic_launcher_round.png differ
+diff --git a/vector-app/src/main/res/mipmap-xhdpi/ic_launcher.png b/vector-app/src/main/res/mipmap-xhdpi/ic_launcher.png
+index 8a58336..250cb9d 100644
+Binary files a/vector-app/src/main/res/mipmap-xhdpi/ic_launcher.png and b/vector-app/src/main/res/mipmap-xhdpi/ic_launcher.png differ
+diff --git a/vector-app/src/main/res/mipmap-xhdpi/ic_launcher_round.png b/vector-app/src/main/res/mipmap-xhdpi/ic_launcher_round.png
+index a16d061..fe1c4e1 100644
+Binary files a/vector-app/src/main/res/mipmap-xhdpi/ic_launcher_round.png and b/vector-app/src/main/res/mipmap-xhdpi/ic_launcher_round.png differ
+diff --git a/vector-app/src/main/res/mipmap-xxhdpi/ic_launcher.png b/vector-app/src/main/res/mipmap-xxhdpi/ic_launcher.png
+index ef4922f..e8c9aa1 100644
+Binary files a/vector-app/src/main/res/mipmap-xxhdpi/ic_launcher.png and b/vector-app/src/main/res/mipmap-xxhdpi/ic_launcher.png differ
+diff --git a/vector-app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png b/vector-app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png
+index 75e4227..94909a2 100644
+Binary files a/vector-app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png and b/vector-app/src/main/res/mipmap-xxhdpi/ic_launcher_round.png differ
+diff --git a/vector-app/src/main/res/mipmap-xxxhdpi/ic_launcher.png b/vector-app/src/main/res/mipmap-xxxhdpi/ic_launcher.png
+index fd6271c..042ff5b 100644
+Binary files a/vector-app/src/main/res/mipmap-xxxhdpi/ic_launcher.png and b/vector-app/src/main/res/mipmap-xxxhdpi/ic_launcher.png differ
+diff --git a/vector-app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png b/vector-app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png
+index 14c5fe4..f5354cc 100644
+Binary files a/vector-app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png and b/vector-app/src/main/res/mipmap-xxxhdpi/ic_launcher_round.png differ
+diff --git a/vector-app/src/main/res/values/colors.xml b/vector-app/src/main/res/values/colors.xml
+index 7054ce2..7600d11 100644
+--- a/vector-app/src/main/res/values/colors.xml
++++ b/vector-app/src/main/res/values/colors.xml
+@@ -1,4 +1,4 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <resources>
+-    <color name="launcher_background">#0DBD8B</color>
++    <color name="launcher_background">#1F5C3A</color>
+ </resources>
 diff --git a/vector-config/src/main/java/im/vector/app/config/Config.kt b/vector-config/src/main/java/im/vector/app/config/Config.kt
 index 3921733..5f120e2 100644
 --- a/vector-config/src/main/java/im/vector/app/config/Config.kt

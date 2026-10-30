@@ -28,6 +28,8 @@ Variante cible : **F-Droid** (flavor `fdroid`), sans aucune bibliothèque Google
 | Réglage FLAG_SECURE masqué | `vector/src/main/res/xml/vector_settings_security_privacy.xml` | préférence « captures d'écran » supprimée |
 | Couleur institutionnelle | `library/ui-styles/.../palette.xml` | vert `#0DBD8B` → `#1F5C3A` |
 | Étiquette pièce jointe | `vector/.../item_timeline_event_file_stub.xml` | « Consultation interne uniquement » |
+| Icône de lancement | `vector-app/src/main/res/mipmap-*/ic_launcher*` + `values/colors.xml` | carré vert `#1F5C3A` + « K » (généré avec Pillow) |
+| Police IBM Plex Sans | `library/ui-styles/.../font/ibm_plex_sans*` + `theme_light.xml` | intégrée (Regular + Bold, SIL OFL) |
 
 ## 2. Identité de l'application
 
