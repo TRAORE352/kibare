@@ -12,6 +12,7 @@ caddy/data/
 *.pem
 *.p12
 *.jks
+*.srl
 ca/
 
 # Fichiers générés depuis les modèles (*.template)

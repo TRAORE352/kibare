@@ -8,21 +8,24 @@ Variante cible : **F-Droid** (flavor `fdroid`), sans aucune bibliothèque Google
 > première compilation F-Droid est lancée. Les changements restants sont listés
 > ci-dessous avec leur emplacement.
 
-## 1. Déjà appliqué
+## 1. Déjà appliqué (au clone local)
 
 | Changement | Fichier | Valeur |
 |---|---|---|
 | Identifiant d'application | `vector-app/build.gradle` (~l.146) | `applicationId "org.kibare.app"` |
-| UnifiedPush externe désactivé | `vector-config/src/main/java/im/vector/app/config/Config.kt` (~l.31) | `ALLOW_EXTERNAL_UNIFIED_PUSH_DISTRIBUTORS = false` |
+| UnifiedPush externe désactivé | `vector-config/.../Config.kt` (~l.31) | `ALLOW_EXTERNAL_UNIFIED_PUSH_DISTRIBUTORS = false` |
+| Blocage captures d'écran forcé | `vector/src/main/java/im/vector/app/core/platform/VectorBaseActivity.kt` (~l.234) | `FLAG_SECURE` inconditionnel (plus de `if`) |
+| Nom de l'application | `vector-app/build.gradle` (~l.250, 258) | `resValue ... "app_name"` → « Kibaré » |
 
 ## 2. Identité de l'application
 
-- **Nom « Kibaré »** : `vector-app/src/main/res/values/strings.xml` (`app_name`),
-  et les variantes par langue. Changer toutes les occurrences de « Element ».
 - **Icône et couleurs** : `vector-app/src/main/res/mipmap-*/ic_launcher*` et
   `values/colors.xml`. Vert institutionnel `#1F5C3A` (section 10 du brief).
 - **Police IBM Plex Sans** : ajouter les fichiers TTF dans `res/font/` et
   référencer dans le thème (SIL OFL, à citer dans le README).
+- **Réglage « Empêcher les captures d'écran » à masquer** : le préférence
+  `useFlagSecure()` (VectorPreferences) doit être masquée dans l'écran des
+  paramètres, car FLAG_SECURE est désormais forcé.
 
 ## 3. Serveur et connexion (section 8.2)
 
