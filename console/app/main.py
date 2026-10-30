@@ -98,7 +98,11 @@ async def oidc_callback(request: Request, db: AsyncSession = Depends(get_db)):
     try:
         token = await oauth.keycloak.authorize_access_token(request, redirect_uri=redirect_uri)
         userinfo = await oauth.keycloak.userinfo(token=token)
-    except Exception:
+    except Exception as exc:
+        # Journalise l'erreur pour diagnostic (jamais de secret ni de contenu).
+        import traceback
+        print("OIDC CALLBACK ERROR:", repr(exc))
+        traceback.print_exc()
         return RedirectResponse(url="/console/login")
 
     matricule = userinfo.get("preferred_username")
