@@ -29,6 +29,13 @@ https://{$KIBARE_SERVER_ADDRESS}, https://kibare.test, https://kibare.lan {
     @health path /health
     respond @health "OK" 200
 
+    # Téléchargement du certificat CA (à installer sur le téléphone pour
+    # l'écran de connexion Keycloak, section 5.7 du brief).
+    handle /kibare-ca.crt {
+        root * /srv
+        file_server
+    }
+
     # Synapse — API client Matrix. IMPORTANT : « handle » (pas « handle_path »)
     # conserve le préfixe /_matrix lors du transfert vers Synapse.
     handle /_matrix/* {
@@ -45,8 +52,13 @@ https://{$KIBARE_SERVER_ADDRESS}, https://kibare.test, https://kibare.lan {
         reverse_proxy keycloak:8080
     }
 
-    # Console Kibaré — administration
+    # Console Kibaré — administration (sous /console)
     handle /console/* {
+        reverse_proxy console:8000
+    }
+
+    # Activation publique par lien à usage unique (sous /activer)
+    handle /activer/* {
         reverse_proxy console:8000
     }
 

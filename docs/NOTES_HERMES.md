@@ -93,3 +93,29 @@ Corrections (vérifiées dans la documentation officielle de Synapse 1.164.1) :
 - Le brief suggère `init.sh` appelé par un conteneur d'init ; nous gardons les
   **deux commandes** (`./scripts/init.sh` puis `docker compose up -d`), plus simple
   et expliqué dans le README.
+
+## Vérification NATIVE complète (30 octobre, suite)
+
+En lançant Synapse 1.164.1 (sqlite) et Keycloak 26.8.1 **directement** (sans
+Docker), j'ai vérifié la chaîne serveur de bout en bout :
+
+1. **OIDC Synapse ↔ Keycloak** : au démarrage, Synapse a téléchargé la
+   découverte (`openid-configuration: 200`) et les clés JWKS (`certs: 200`). → OK.
+2. **Création du bot** (`@kibare-bot`) via l'API d'enregistrement avec HMAC-SHA1
+   + secret partagé (même construction que `register_new_matrix_user`). → OK.
+3. **Création des comptes** Matrix (admin API `PUT /_synapse/admin/v2/users/...`). → OK.
+4. **Création des salons** (client API `POST /_matrix/client/v3/createRoom`) avec
+   état `m.room.encryption = m.megolm.v1.aes-sha2`, `join_rule = invite`,
+   `history_visibility = joined`. → OK (vérifié dans l'état du salon).
+5. **Désactivation** (révocation) `POST /_synapse/admin/v1/deactivate/@demo-203:kibare.test`
+   → `id_server_unbind_result: success`. → OK.
+
+**Écart corrigé pendant ces tests** : la création de salon ne passe PAS par
+`POST /_synapse/admin/v1/rooms` (inexistant) mais par l'API client
+`POST /_matrix/client/v3/createRoom`. C'est corrigé dans `scripts/demo_seed.py`.
+
+**Reste à vérifier sur la machine Docker de l'équipe** :
+- `docker compose up -d` (orchestration complète) ;
+- l'échange chiffré réel entre deux clients (nécessite un client Matrix E2EE,
+  ex. matrix-nio, pour les tests d'intégration) ;
+- le flux de connexion navigateur complet (matricule + mot de passe + OTP).
