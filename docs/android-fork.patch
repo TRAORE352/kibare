@@ -149,6 +149,115 @@ index bf621b6..9b24c95 100644
  
          doBeforeSetContentView()
  
+diff --git a/vector/src/main/java/im/vector/app/core/ui/views/WatermarkView.kt b/vector/src/main/java/im/vector/app/core/ui/views/WatermarkView.kt
+new file mode 100644
+index 0000000..a02c746
+--- /dev/null
++++ b/vector/src/main/java/im/vector/app/core/ui/views/WatermarkView.kt
+@@ -0,0 +1,72 @@
++/*
++ * KIBARÉ — protection « Zéro fuite » : filigrane nominatif.
++ *
++ * Vue non interactive qui affiche, en diagonale et en très faible opacité,
++ * le texte « Prénom Nom · Matricule · date » sur l'écran de conversation et la
++ * visionneuse d'images. Si une photo de l'écran est prise avec un autre appareil,
++ * le filigrane permet d'identifier l'agent responsable.
++ */
++package im.vector.app.core.ui.views
++
++import android.content.Context
++import android.graphics.Canvas
++import android.graphics.Color
++import android.graphics.Paint
++import android.util.AttributeSet
++import android.view.MotionEvent
++import android.view.View
++import java.text.SimpleDateFormat
++import java.util.Date
++import java.util.Locale
++
++class WatermarkView @JvmOverloads constructor(
++        context: Context,
++        attrs: AttributeSet? = null,
++        defStyleAttr: Int = 0
++) : View(context, attrs, defStyleAttr) {
++
++    private val paint = Paint().apply {
++        color = Color.DKGRAY
++        alpha = 18                 // opacité ~7 % (255 * 0.07 ≈ 18) : très discret
++        textSize = 40f
++        isAntiAlias = true
++    }
++
++    /** Texte à afficher, ex. « Awa KONATÉ · demo-101 · 30/10/2026 ». */
++    var watermarkText: String = ""
++        set(value) {
++            field = value
++            invalidate()
++        }
++
++    /** Renseigne le filigrane à partir de l'utilisateur courant. */
++    fun setUser(nom: String, prenom: String, matricule: String) {
++        val date = SimpleDateFormat("dd/MM/yyyy", Locale.FRANCE).format(Date())
++        watermarkText = "$prenom $nom · $matricule · $date"
++    }
++
++    override fun onDraw(canvas: Canvas) {
++        super.onDraw(canvas)
++        if (watermarkText.isBlank()) return
++
++        canvas.save()
++        // Incline le texte en diagonale.
++        canvas.rotate(-30f, width / 2f, height / 2f)
++
++        val stepX = 260f
++        val stepY = 150f
++        var y = -height.toFloat()
++        while (y < height * 2) {
++            var x = -width.toFloat()
++            while (x < width * 2) {
++                canvas.drawText(watermarkText, x, y, paint)
++                x += stepX
++            }
++            y += stepY
++        }
++        canvas.restore()
++    }
++
++    // Ne jamais intercepter les touches : la vue doit être transparente aux clics.
++    override fun onTouchEvent(event: MotionEvent): Boolean = false
++}
+diff --git a/vector/src/main/java/im/vector/app/features/home/room/detail/TimelineFragment.kt b/vector/src/main/java/im/vector/app/features/home/room/detail/TimelineFragment.kt
+index 01be29d..9a196d9 100644
+--- a/vector/src/main/java/im/vector/app/features/home/room/detail/TimelineFragment.kt
++++ b/vector/src/main/java/im/vector/app/features/home/room/detail/TimelineFragment.kt
+@@ -325,6 +325,8 @@ class TimelineFragment :
+         setupToolbar(views.roomToolbar)
+                 .allowBack()
+         setupRecyclerView()
++        // KIBARÉ : filigrane nominatif (protection « Zéro fuite »).
++        setupWatermark()
+         setupNotificationView()
+         setupJumpToReadMarkerView()
+         setupActiveCallView()
+@@ -764,6 +766,17 @@ class TimelineFragment :
+ //        }
+     }
+ 
++    // KIBARÉ : filigrane nominatif — affiche « Nom · Matricule · date » en
++    // sur-impression, très discret, pour identifier l'agent sur une photo d'écran.
++    private fun setupWatermark() {
++        val userId = session.myUserId
++        val matricule = userId.substringAfter('@').substringBefore(':')
++        val displayName = session.getUser(userId)?.displayName ?: matricule
++        val date = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.FRANCE)
++                .format(java.util.Date())
++        views.watermarkView.watermarkText = "$displayName · $matricule · $date"
++    }
++
+     private fun setupNotificationView() {
+         views.notificationAreaView.delegate = object : NotificationAreaView.Delegate {
+             override fun onTombstoneEventClicked() {
 diff --git a/vector/src/main/java/im/vector/app/features/home/room/detail/timeline/action/MessageActionsViewModel.kt b/vector/src/main/java/im/vector/app/features/home/room/detail/timeline/action/MessageActionsViewModel.kt
 index 2280a26..149e6d5 100644
 --- a/vector/src/main/java/im/vector/app/features/home/room/detail/timeline/action/MessageActionsViewModel.kt
@@ -253,3 +362,28 @@ index afbd6fa..7fbe5a1 100644
  
          </LinearLayout>
  
+diff --git a/vector/src/main/res/layout/fragment_timeline.xml b/vector/src/main/res/layout/fragment_timeline.xml
+index a022ad2..beb04f5 100644
+--- a/vector/src/main/res/layout/fragment_timeline.xml
++++ b/vector/src/main/res/layout/fragment_timeline.xml
+@@ -204,7 +204,19 @@
+ 
+         </androidx.constraintlayout.widget.ConstraintLayout>
+ 
+-    </androidx.constraintlayout.widget.ConstraintLayout>
++            <!-- KIBARÉ : filigrane nominatif (protection « Zéro fuite »).
++             Vue non interactive en sur-impression du fil des messages. -->
++        <im.vector.app.core.ui.views.WatermarkView
++            android:id="@+id/watermarkView"
++            android:layout_width="0dp"
++            android:layout_height="0dp"
++            android:importantForAccessibility="no"
++            app:layout_constraintBottom_toBottomOf="parent"
++            app:layout_constraintEnd_toEndOf="parent"
++            app:layout_constraintStart_toStartOf="parent"
++            app:layout_constraintTop_toTopOf="parent" />
++
++</androidx.constraintlayout.widget.ConstraintLayout>
+ 
+     <FrameLayout
+         android:id="@+id/composerContainer"
