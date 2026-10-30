@@ -19,6 +19,7 @@ from fastapi import Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.database import get_db
+from app.session import read_matricule
 from app.models import Agent, AgentRole, AgentStatus, Ministere
 
 
@@ -49,9 +50,10 @@ def check_ministere_access(admin: Agent, target_ministere) -> bool:
 
 async def get_current_agent(request: Request, db: AsyncSession = Depends(get_db)) -> Agent:
     """
-    Récupère l'agent connecté depuis la session, et vérifie qu'il est actif.
+    Récupère l'agent connecté depuis le cookie signé, et vérifie qu'il est actif.
     """
-    matricule = request.session.get("matricule")
+    token = request.cookies.get("kibare_user")
+    matricule = read_matricule(token) if token else None
     if not matricule:
         raise HTTPException(status.HTTP_401_UNAUTHORIZED, "Non authentifié")
 

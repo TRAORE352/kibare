@@ -2,22 +2,24 @@
 """
 Application web d'administration de la messagerie souveraine Kibaré.
 
-Connexion des admins : Keycloak (OIDC) via la bibliothèque Authlib.
-Accès réservé aux rôles super-admin et admin-ministere (voir app/auth.py).
+Connexion des admins : Keycloak (OIDC, flux « code ») — échange de code et
+récupération du profil faits manuellement via httpx, puis session via un cookie
+signé (app/session.py). Accès réservé aux rôles super-admin et admin-ministere.
 """
 from contextlib import asynccontextmanager
+from urllib.parse import quote
 
+import httpx
 from fastapi import FastAPI, Depends, Request
 from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from starlette.middleware.sessions import SessionMiddleware
-from authlib.integrations.starlette_client import OAuth
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import init_db, get_db
 from app.services.seed import seed_demo_agents
+from app.session import sign_matricule
 from app.keycloak_client import KeycloakAdminClient
 from app.synapse_client import SynapseAdminClient
 from app.models import Agent, AgentRole, AgentStatus
@@ -41,30 +43,6 @@ async def lifespan(app: FastAPI):
 
 app = FastAPI(title="Console Kibaré", version="1.0.0", lifespan=lifespan)
 
-# Session signée (cookie HttpOnly) pour la connexion OIDC.
-# same_site="none" + https_only=True : le cookie est envoyé sur toutes les
-# requêtes HTTPS (nécessaire car le flux passe par Keycloak puis revient).
-app.add_middleware(
-    SessionMiddleware, secret_key=settings.session_secret,
-    https_only=True, same_site="none", max_age=1800,
-)
-
-# ----------------------------------------------------------------------
-# Client OIDC (Authlib) pour Keycloak
-# ----------------------------------------------------------------------
-oauth = OAuth()
-oauth.register(
-    name="keycloak",
-    client_id="kibare-console",
-    client_secret=settings.keycloak_console_client_secret,
-    # URL publique pour la redirection du NAVIGATEUR :
-    authorize_url=f"{settings.KEYCLOAK_PUBLIC_URL}/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/auth",
-    # URL interne pour l'échange de code et le userinfo (côté serveur) :
-    access_token_url=f"{settings.KEYCLOAK_INTERNAL_URL}/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/token",
-    userinfo_endpoint=f"{settings.KEYCLOAK_INTERNAL_URL}/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/userinfo",
-    client_kwargs={"scope": "openid profile email"},
-)
-
 app.mount("/console/static", StaticFiles(directory="app/static"), name="static")
 
 app.include_router(health.router)
@@ -82,22 +60,53 @@ async def console_root():
 
 
 @app.get("/console/login")
-async def login(request: Request):
-    """Redirige vers Keycloak pour l'authentification OIDC."""
-    redirect_uri = f"{settings.SERVER_ADDRESS}/console/callback"
-    return await oauth.keycloak.authorize_redirect(request, redirect_uri)
+async def login():
+    """Redirige le navigateur vers l'écran de connexion Keycloak (flux code)."""
+    redirect_uri = quote(f"{settings.SERVER_ADDRESS}/console/callback", safe="")
+    auth_url = (
+        f"{settings.KEYCLOAK_PUBLIC_URL}/realms/{settings.KEYCLOAK_REALM}"
+        f"/protocol/openid-connect/auth"
+        f"?response_type=code&client_id=kibare-console"
+        f"&redirect_uri={redirect_uri}&scope=openid+profile+email"
+    )
+    return RedirectResponse(url=auth_url)
 
 
 @app.get("/console/callback")
-async def oidc_callback(request: Request, db: AsyncSession = Depends(get_db)):
+async def oidc_callback(code: str = None, db: AsyncSession = Depends(get_db)):
     """
-    Retour de Keycloak : échange le code contre des jetons, récupère le
-    matricule (preferred_username) via userinfo, puis ouvre la session.
+    Retour de Keycloak : échange le code d'autorisation contre des jetons,
+    récupère le matricule (preferred_username) via userinfo, vérifie le rôle,
+    puis ouvre la session (cookie signé).
     """
+    if not code:
+        return RedirectResponse(url="/console/login")
+
     redirect_uri = f"{settings.SERVER_ADDRESS}/console/callback"
+    token_url = (f"{settings.KEYCLOAK_INTERNAL_URL}/realms/"
+                 f"{settings.KEYCLOAK_REALM}/protocol/openid-connect/token")
+    userinfo_url = (f"{settings.KEYCLOAK_INTERNAL_URL}/realms/"
+                    f"{settings.KEYCLOAK_REALM}/protocol/openid-connect/userinfo")
+
     try:
-        token = await oauth.keycloak.authorize_access_token(request, redirect_uri=redirect_uri)
-        userinfo = await oauth.keycloak.userinfo(token=token)
+        async with httpx.AsyncClient(timeout=30.0) as client:
+            # Échange du code (client confidentiel : client_id + client_secret).
+            r = await client.post(token_url, data={
+                "grant_type": "authorization_code",
+                "code": code,
+                "client_id": "kibare-console",
+                "client_secret": settings.keycloak_console_client_secret,
+                "redirect_uri": redirect_uri,
+            })
+            r.raise_for_status()
+            tokens = r.json()
+
+            # Récupère le profil utilisateur (Keycloak valide le jeton lui-même).
+            u = await client.get(userinfo_url, headers={
+                "Authorization": f"Bearer {tokens['access_token']}",
+            })
+            u.raise_for_status()
+            userinfo = u.json()
     except Exception as exc:
         # Journalise l'erreur pour diagnostic (jamais de secret ni de contenu).
         import traceback
@@ -116,16 +125,21 @@ async def oidc_callback(request: Request, db: AsyncSession = Depends(get_db)):
             or agent.role not in (AgentRole.SUPER_ADMIN, AgentRole.ADMIN_MINISTERE)):
         return RedirectResponse(url="/console/login")
 
-    request.session["matricule"] = matricule
-    return RedirectResponse(url="/console/agents")
+    # Ouvre la session : cookie signé contenant le matricule.
+    response = RedirectResponse(url="/console/agents", status_code=303)
+    response.set_cookie(
+        "kibare_user", sign_matricule(matricule),
+        httponly=True, secure=True, samesite="none", max_age=1800, path="/",
+    )
+    return response
 
 
 @app.get("/console/logout")
-async def logout(request: Request):
-    """Déconnecte : vide la session locale, puis redirige vers Keycloak."""
-    request.session.clear()
-    logout_url = (
+async def logout():
+    """Déconnecte : supprime le cookie local, puis redirige vers Keycloak."""
+    response = RedirectResponse(url=(
         f"{settings.KEYCLOAK_PUBLIC_URL}/realms/{settings.KEYCLOAK_REALM}"
         f"/protocol/openid-connect/logout"
-    )
-    return RedirectResponse(url=logout_url)
+    ))
+    response.delete_cookie("kibare_user", path="/")
+    return response
