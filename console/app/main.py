@@ -42,11 +42,11 @@ async def lifespan(app: FastAPI):
 app = FastAPI(title="Console Kibaré", version="1.0.0", lifespan=lifespan)
 
 # Session signée (cookie HttpOnly) pour la connexion OIDC.
-# https_only=False : la Console est DERRIÈRE Caddy qui termine le TLS ;
-# le cookie est tout de même HttpOnly + SameSite (par défaut de SessionMiddleware).
+# same_site="none" + https_only=True : le cookie est envoyé sur toutes les
+# requêtes HTTPS (nécessaire car le flux passe par Keycloak puis revient).
 app.add_middleware(
     SessionMiddleware, secret_key=settings.session_secret,
-    https_only=False, max_age=1800,
+    https_only=True, same_site="none", max_age=1800,
 )
 
 # ----------------------------------------------------------------------
