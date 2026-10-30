@@ -1,101 +1,63 @@
-# Caddyfile pour Kibaré
-# Reverse proxy HTTPS avec CA locale (pas de Let's Encrypt)
-# Point d'entrée unique sur le port 443
+# =====================================================================
+# Caddyfile — reverse proxy HTTPS avec CA locale (aucun Let's Encrypt)
+# Point d'entrée unique. L'adresse du serveur est injectée via la
+# variable d'environnement KIBARE_SERVER_ADDRESS.
+# =====================================================================
 
 {
-    # Désactiver les défis ACME/Let's Encrypt
+    # Désactive ACME / Let's Encrypt et l'API admin locale
     admin off
     auto_https off
 }
 
-# Variables d'environnement pour l'adresse du serveur
-# Remplacées par init.sh ou via .env
-# { $KIBARE_SERVER_ADDRESS }
-
-# Serveur principal : kibare.test (et IP locale)
-https://kibare.test, https://192.168.10.10 {
-    # Certificats signés par la CA locale
-    tls /etc/caddy/kibare-server.crt /etc/caddy/kibare-server.key {
-        # Charger la CA pour la validation client si nécessaire
-        # client_auth {
-        #     mode require_and_verify
-        #     trusted_ca_cert_file /etc/caddy/kibare-ca.crt
-        # }
-    }
+# Serveur principal : adresse IP (canonique) + alias DNS locaux
+https://{$KIBARE_SERVER_ADDRESS}, https://kibare.test, https://kibare.lan {
+    # Certificat serveur signé par la CA locale (généré par scripts/init.sh)
+    tls /etc/caddy/kibare-server.crt /etc/caddy/kibare-server.key
 
     # En-têtes de sécurité
     header {
-        # HSTS (1 an) - attention : nécessite certificat valide pour les navigateurs
-        # Strict-Transport-Security "max-age=31536000; includeSubDomains; preload"
-        # CSP restrictive
-        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
+        Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
         X-Frame-Options "DENY"
         X-Content-Type-Options "nosniff"
         Referrer-Policy "strict-origin-when-cross-origin"
         Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
-        # Supprimer l'en-tête Server
         -Server
     }
 
-    # Health check
+    # Health check de la porte d'entrée
     @health path /health
     respond @health "OK" 200
 
-    # Synapse (Matrix) - API client
-    handle_path /_matrix/* {
+    # Synapse — API client Matrix. IMPORTANT : « handle » (pas « handle_path »)
+    # conserve le préfixe /_matrix lors du transfert vers Synapse.
+    handle /_matrix/* {
         reverse_proxy synapse:8008
     }
 
-    # Synapse - Médias
-    handle_path /_synapse/* {
+    # Synapse — API d'administration
+    handle /_synapse/* {
         reverse_proxy synapse:8008
     }
 
-    # Keycloak - Auth
-    handle_path /auth/* {
+    # Keycloak — authentification (préfixe /auth)
+    handle /auth/* {
         reverse_proxy keycloak:8080
     }
 
-    # Console Kibaré
-    handle_path /console/* {
+    # Console Kibaré — administration
+    handle /console/* {
         reverse_proxy console:8000
     }
 
-    # Redirection racine vers la console
+    # Racine : redirection vers la console
     handle {
         redir /console/ 302
     }
 
-    # Logs structurés
+    # Logs structurés JSON (jamais le contenu des messages)
     log {
         output stdout
         format json
-    }
-}
-
-# Pour compatibilité : kibare.lan (si DNS local)
-https://kibare.lan {
-    tls /etc/caddy/kibare-server.crt /etc/caddy/kibare-server.key
-    header {
-        Content-Security-Policy "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' wss:; frame-ancestors 'none'"
-        X-Frame-Options "DENY"
-        X-Content-Type-Options "nosniff"
-        Referrer-Policy "strict-origin-when-cross-origin"
-        -Server
-    }
-    handle_path /_matrix/* {
-        reverse_proxy synapse:8008
-    }
-    handle_path /_synapse/* {
-        reverse_proxy synapse:8008
-    }
-    handle_path /auth/* {
-        reverse_proxy keycloak:8080
-    }
-    handle_path /console/* {
-        reverse_proxy console:8000
-    }
-    handle {
-        redir /console/ 302
     }
 }

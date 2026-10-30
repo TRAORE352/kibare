@@ -4,6 +4,7 @@
 
 # Secrets et configuration locale (générés par scripts/init.sh)
 .env
+secrets/
 caddy/certs/
 caddy/data/
 *.key
@@ -12,6 +13,11 @@ caddy/data/
 *.p12
 *.jks
 ca/
+
+# Fichiers générés depuis les modèles (*.template)
+synapse/homeserver.yaml
+keycloak/realm-kibare.json
+caddy/Caddyfile.generated
 
 # Python
 __pycache__/

@@ -1,9 +1,16 @@
-version: '3.8'
+# =====================================================================
+# docker-compose.yml — Plateforme Kibaré
+# Démarrage : ./scripts/init.sh  (une seule fois)
+#             docker compose up -d
+# Toutes les versions d'images sont figées (pas de tag « latest »).
+# =====================================================================
 
 services:
-  # PostgreSQL - Base de données partagée pour Synapse et Keycloak
+  # ------------------------------------------------------------------
+  # PostgreSQL — base unique pour Synapse, Keycloak et la Console
+  # ------------------------------------------------------------------
   postgres:
-    image: postgres:16.4-alpine
+    image: postgres:17.11-alpine
     container_name: kibare-postgres
     restart: unless-stopped
     environment:
@@ -12,8 +19,11 @@ services:
       POSTGRES_PASSWORD_FILE: /run/secrets/postgres_password
     secrets:
       - postgres_password
+      - keycloak_db_password
+      - console_db_password
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      # Crée les bases synapse, keycloak et kibare_console au premier démarrage
       - ./scripts/init-postgres.sh:/docker-entrypoint-initdb.d/init-postgres.sh:ro
     networks:
       - kibare-internal
@@ -23,9 +33,11 @@ services:
       timeout: 5s
       retries: 5
 
-  # Synapse - Serveur Matrix
+  # ------------------------------------------------------------------
+  # Synapse — serveur Matrix (messages stockés chiffrés uniquement)
+  # ------------------------------------------------------------------
   synapse:
-    image: matrixdotorg/synapse:v1.106.0
+    image: matrixdotorg/synapse:v1.164.1
     container_name: kibare-synapse
     restart: unless-stopped
     depends_on:
@@ -34,26 +46,34 @@ services:
     environment:
       SYNAPSE_SERVER_NAME: kibare.test
       SYNAPSE_REPORT_STATS: "false"
-      SYNAPSE_CONFIG_PATH: /data/homeserver.yaml
-      SYNAPSE_NO_TLS: "true"  # Caddy gère le TLS
+      SYNAPSE_NO_TLS: "true"   # Caddy gère le TLS
+      # Chemin du magasin de certificats système (mis à jour avec la CA locale)
+      SSL_CERT_FILE: /etc/ssl/certs/ca-certificates.crt
+    secrets:
+      - oidc_client_secret
     volumes:
       - synapse_data:/data
       - ./synapse/homeserver.yaml:/data/homeserver.yaml:ro
       - ./synapse/log.config:/data/log.config:ro
+      # CA locale : Synapse doit faire confiance à Keycloak (OIDC via HTTPS)
       - ./caddy/kibare-ca.crt:/usr/local/share/ca-certificates/kibare-ca.crt:ro
     networks:
       - kibare-internal
+    # On met à jour le magasin de certificats (pour la CA locale) puis on démarre
     command: >
-      sh -c "update-ca-certificates && python -m synapse.app.homeserver --config-path /data/homeserver.yaml"
+      sh -c "update-ca-certificates 2>/dev/null || true &&
+             python -m synapse.app.homeserver --config-path /data/homeserver.yaml"
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8008/health"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:8008/health"]
       interval: 15s
       timeout: 10s
       retries: 5
 
-  # Keycloak - Gestion d'identité
+  # ------------------------------------------------------------------
+  # Keycloak — identité : comptes, OTP (TOTP), rôles, attributs
+  # ------------------------------------------------------------------
   keycloak:
-    image: quay.io/keycloak/keycloak:26.0.6
+    image: quay.io/keycloak/keycloak:26.8.1
     container_name: kibare-keycloak
     restart: unless-stopped
     depends_on:
@@ -65,32 +85,38 @@ services:
       KC_DB_URL_DATABASE: keycloak
       KC_DB_USERNAME: keycloak
       KC_DB_PASSWORD_FILE: /run/secrets/keycloak_db_password
-      KC_HOSTNAME: kibare.test
+      # Nom d'hôte public = adresse du serveur (même valeur pour le téléphone
+      # et pour Synapse, sinon l'issuer OIDC ne correspond pas).
+      KC_HOSTNAME: ${KIBARE_SERVER_ADDRESS:-192.168.10.10}
       KC_HOSTNAME_PORT: 443
       KC_HOSTNAME_STRICT: "false"
       KC_HOSTNAME_STRICT_HTTPS: "false"
+      # Caddy termine le TLS et parle à Keycloak en HTTP interne
       KC_HTTP_ENABLED: "true"
-      KC_PROXY: edge
+      KC_PROXY_HEADERS: xforwarded
+      # Préfixe /auth conservé (compatible avec les URL du brief)
+      KC_HTTP_RELATIVE_PATH: /auth
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD_FILE: /run/secrets/keycloak_admin_password
-      KC_IMPORT: /opt/keycloak/data/import/realm-kibare.json
     secrets:
       - keycloak_db_password
       - keycloak_admin_password
     volumes:
       - keycloak_data:/opt/keycloak/data
       - ./keycloak/realm-kibare.json:/opt/keycloak/data/import/realm-kibare.json:ro
-      - ./caddy/kibare-ca.crt:/usr/local/share/ca-certificates/kibare-ca.crt:ro
     networks:
       - kibare-internal
-    command: start-dev --import-realm
+    # --import-realm : importe le realm kibare au premier démarrage
+    command: start --import-realm
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8080/health/ready"]
+      test: ["CMD-SHELL", "exec 3<>/dev/tcp/127.0.0.1/8080 && echo ok"]
       interval: 15s
       timeout: 10s
       retries: 5
 
-  # Console Kibaré - FastAPI
+  # ------------------------------------------------------------------
+  # Console Kibaré — application web d'administration (FastAPI)
+  # ------------------------------------------------------------------
   console:
     build:
       context: ./console
@@ -102,63 +128,67 @@ services:
         condition: service_healthy
       keycloak:
         condition: service_healthy
+      synapse:
+        condition: service_healthy
     environment:
-      DATABASE_URL: postgresql+asyncpg://console:console@postgres/kibare_console
+      DATABASE_URL: postgresql+asyncpg://console@postgres/kibare_console
+      DATABASE_PASSWORD_FILE: /run/secrets/console_db_password
       KEYCLOAK_ADMIN_URL: http://keycloak:8080
       KEYCLOAK_ADMIN_USER: admin
       KEYCLOAK_ADMIN_PASSWORD_FILE: /run/secrets/keycloak_admin_password
       KEYCLOAK_REALM: kibare
+      KEYCLOAK_CONSOLE_CLIENT_SECRET_FILE: /run/secrets/console_client_secret
+      KEYCLOAK_PUBLIC_URL: https://${KIBARE_SERVER_ADDRESS:-192.168.10.10}/auth
       SYNAPSE_ADMIN_URL: http://synapse:8008
       SYNAPSE_ADMIN_TOKEN_FILE: /run/secrets/synapse_admin_token
-      SERVER_ADDRESS: ${KIBARE_SERVER_ADDRESS:-192.168.10.10}
+      SERVER_ADDRESS: https://${KIBARE_SERVER_ADDRESS:-192.168.10.10}
       ACTIVATION_TOKEN_TTL_HOURS: 48
-      JWT_SECRET_FILE: /run/secrets/jwt_secret
     secrets:
+      - console_db_password
       - keycloak_admin_password
+      - console_client_secret
       - synapse_admin_token
-      - jwt_secret
     volumes:
       - ./console/app:/app/app:ro
+      - ./caddy/kibare-ca.crt:/usr/local/share/ca-certificates/kibare-ca.crt:ro
     networks:
       - kibare-internal
     healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "http://localhost:8000/health"]
+      test: ["CMD", "curl", "-fsS", "http://localhost:8000/health"]
       interval: 15s
       timeout: 5s
       retries: 3
 
-  # Caddy - Reverse proxy HTTPS avec CA locale
+  # ------------------------------------------------------------------
+  # Caddy — reverse proxy HTTPS avec la CA locale (point d'entrée unique)
+  # ------------------------------------------------------------------
   caddy:
-    image: caddy:2.8.4-alpine
+    image: caddy:2.11.7-alpine
     container_name: kibare-caddy
     restart: unless-stopped
     depends_on:
       - synapse
       - keycloak
       - console
+    environment:
+      KIBARE_SERVER_ADDRESS: ${KIBARE_SERVER_ADDRESS:-192.168.10.10}
     ports:
       - "443:443"
       - "80:80"
     volumes:
       - ./caddy/Caddyfile:/etc/caddy/Caddyfile:ro
-      - ./caddy/kibare-ca.crt:/etc/caddy/kibare-ca.crt:ro
-      - ./caddy/kibare-ca.key:/etc/caddy/kibare-ca.key:ro
       - ./caddy/kibare-server.crt:/etc/caddy/kibare-server.crt:ro
       - ./caddy/kibare-server.key:/etc/caddy/kibare-server.key:ro
       - caddy_data:/data
       - caddy_config:/config
     networks:
       - kibare-internal
-    healthcheck:
-      test: ["CMD", "wget", "-q", "--spider", "https://localhost/health"]
-      interval: 15s
-      timeout: 5s
-      retries: 3
 
 networks:
   kibare-internal:
     driver: bridge
-    internal: true  # Pas d'accès Internet depuis les conteneurs
+    # Pas d'accès Internet depuis les conteneurs (réseau interne uniquement)
+    internal: true
 
 volumes:
   postgres_data:
@@ -174,7 +204,11 @@ secrets:
     file: ./secrets/keycloak_db_password.txt
   keycloak_admin_password:
     file: ./secrets/keycloak_admin_password.txt
+  console_db_password:
+    file: ./secrets/console_db_password.txt
+  oidc_client_secret:
+    file: ./secrets/oidc_client_secret.txt
+  console_client_secret:
+    file: ./secrets/console_client_secret.txt
   synapse_admin_token:
     file: ./secrets/synapse_admin_token.txt
-  jwt_secret:
-    file: ./secrets/jwt_secret.txt
