@@ -1,0 +1,82 @@
+/* style.css — Console Kibaré
+   Identité visuelle : sobre, éditoriale, institutionnelle.
+   Vert foncé institutionnel, fond blanc cassé, rouge réservé aux alertes. */
+
+:root {
+  --vert: #1F5C3A;
+  --vert-fonce: #16422A;
+  --fond: #FAFAF7;          /* blanc cassé */
+  --texte: #1F2421;         /* gris très foncé (pas de noir pur) */
+  --muted: #5A645E;
+  --rouge: #B3261E;         /* réservé à la révocation / alertes */
+  --bord: #E3E1DC;
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  background: var(--fond);
+  color: var(--texte);
+  /* IBM Plex Sans (SIL OFL) ; repli sur les polices système si non embarquée */
+  font-family: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
+  line-height: 1.5;
+}
+
+.topbar {
+  background: var(--vert);
+  color: #fff;
+  border-bottom: 4px solid var(--vert-fonce);
+}
+.topbar-inner {
+  max-width: 1000px; margin: 0 auto; padding: 0.8rem 1rem;
+  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+}
+.brand { font-weight: 700; font-size: 1.2rem; letter-spacing: 0.02em; }
+.brand-sub { color: #DCE7DF; font-size: 0.85rem; }
+.nav { margin-left: auto; display: flex; gap: 1rem; }
+.nav a { color: #fff; text-decoration: none; font-size: 0.9rem; }
+.nav a:hover { text-decoration: underline; }
+
+.content { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; }
+.content.narrow { max-width: 560px; }
+body.public { background: var(--fond); }
+
+h1 { font-size: 1.6rem; margin-top: 0; }
+h2 { font-size: 1.2rem; margin-top: 2rem; }
+.muted { color: var(--muted); }
+
+a { color: var(--vert); }
+
+.btn {
+  display: inline-block; padding: 0.5rem 1rem;
+  background: var(--vert); color: #fff; text-decoration: none;
+  border: none; border-radius: 4px; cursor: pointer; font-size: 0.95rem;
+}
+.btn:hover { background: var(--vert-fonce); }
+.btn-danger { background: var(--rouge); }
+
+.form { display: grid; gap: 0.75rem; max-width: 480px; margin-top: 1rem; }
+.form label { display: grid; gap: 0.25rem; font-size: 0.9rem; }
+.form input, .form select {
+  padding: 0.5rem; border: 1px solid var(--bord); border-radius: 4px;
+  font-size: 0.95rem; background: #fff;
+}
+
+.table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
+.table th, .table td {
+  text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--bord);
+  font-size: 0.9rem;
+}
+.table th { color: var(--muted); font-weight: 600; }
+
+.alert {
+  background: #FDEBEA; color: var(--rouge); border: 1px solid var(--rouge);
+  padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;
+}
+
+.danger-title { color: var(--rouge); }
+
+.qr-block { text-align: center; margin: 1.5rem 0; }
+.qr-block img { width: 220px; height: 220px; }
+.qr-block code { word-break: break-all; color: var(--muted); }

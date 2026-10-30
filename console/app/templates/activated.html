@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Compte activé — Kibaré</title>
+  <link rel="stylesheet" href="/console/static/css/style.css">
+</head>
+<body class="public">
+<main class="content narrow">
+  <h1>Compte activé</h1>
+  <p>Votre compte <strong>{{ agent.matricule }}</strong> est maintenant actif.</p>
+  <p class="muted">À la première connexion, vous devrez configurer votre code OTP
+     (application FreeOTP ou Aegis).</p>
+  <p><a class="btn" href="{{ server_address }}">Ouvrir Kibaré</a></p>
+</main>
+</body>
+</html>

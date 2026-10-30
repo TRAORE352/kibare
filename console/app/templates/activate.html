@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Activation — Kibaré</title>
+  <link rel="stylesheet" href="/console/static/css/style.css">
+</head>
+<body class="public">
+<main class="content narrow">
+  <h1>Activer votre accès Kibaré</h1>
+  <p class="muted">Bienvenue. Cette page vous permet d'activer votre compte enrôlé.</p>
+
+  {% if error %}
+  <div class="alert">{{ error }}</div>
+  {% else %}
+  <h2>1. Installer le certificat</h2>
+  <p class="muted">Téléchargez puis installez le certificat de sécurité pour que votre
+     téléphone fasse confiance au serveur Kibaré.</p>
+  <p><a class="btn" href="/kibare-ca.crt">Télécharger le certificat</a></p>
+
+  <h2>2. Installer l'application</h2>
+  <p class="muted">Téléchargez l'application Kibaré (fournie par votre administrateur).</p>
+
+  <h2>3. Choisir votre mot de passe</h2>
+  <form method="post" action="/activer/{{ token }}" class="form">
+    <label>Mot de passe (12 caractères minimum)
+      <input type="password" name="password" minlength="12" required autocomplete="new-password">
+    </label>
+    <button class="btn" type="submit">Activer mon compte</button>
+  </form>
+  {% endif %}
+</main>
+</body>
+</html>

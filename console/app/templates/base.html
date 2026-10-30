@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% block title %}Console Kibaré{% endblock %}</title>
+  <link rel="stylesheet" href="/console/static/css/style.css">
+</head>
+<body>
+<header class="topbar">
+  <div class="topbar-inner">
+    <span class="brand">Kibaré</span>
+    <span class="brand-sub">Messagerie souveraine de l'administration</span>
+    {% if admin is defined and admin %}
+    <nav class="nav">
+      <a href="/console/agents">Agents</a>
+      <a href="/console/annuaire">Annuaire</a>
+      <a href="/console/journal">Journal</a>
+      <a href="/console/logout">Déconnexion</a>
+    </nav>
+    {% endif %}
+  </div>
+</header>
+<main class="content">
+  {% if error is defined and error %}
+  <div class="alert">{{ error }}</div>
+  {% endif %}
+  {% block content %}{% endblock %}
+</main>
+</body>
+</html>

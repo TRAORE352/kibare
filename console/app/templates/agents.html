@@ -1,0 +1,31 @@
+{% extends "base.html" %}
+{% block title %}Agents — Console Kibaré{% endblock %}
+{% block content %}
+<h1>Agents</h1>
+<p class="muted">Matricule, ministère, fonction et statut des agents enrôlés.</p>
+<p><a class="btn" href="/console/agents/enroll">Enrôler un agent</a></p>
+<table class="table">
+  <thead>
+    <tr>
+      <th>Matricule</th><th>Nom</th><th>Ministère</th><th>Direction</th>
+      <th>Fonction</th><th>Rôle</th><th>Statut</th><th></th>
+    </tr>
+  </thead>
+  <tbody>
+  {% for a in agents %}
+    <tr>
+      <td>{{ a.matricule }}</td>
+      <td>{{ a.prenom }} {{ a.nom }}</td>
+      <td>{{ a.ministere.value }}</td>
+      <td>{{ a.direction }}</td>
+      <td>{{ a.fonction }}</td>
+      <td>{{ a.role.value }}</td>
+      <td>{{ a.status.value }}</td>
+      <td><a href="/console/agents/{{ a.matricule }}">Fiche</a></td>
+    </tr>
+  {% else %}
+    <tr><td colspan="8" class="muted">Aucun agent.</td></tr>
+  {% endfor %}
+  </tbody>
+</table>
+{% endblock %}

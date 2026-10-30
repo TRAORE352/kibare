@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% block title %}Agent enrôlé — Console Kibaré{% endblock %}
+{% block content %}
+<h1>Agent enrôlé</h1>
+<p>{{ agent.prenom }} {{ agent.nom }} ({{ agent.matricule }}) est en attente d'activation.</p>
+<p class="muted">Transmettez ce lien à l'agent en main propre. Il est à usage unique et expire
+   dans {{ ttl_hours }} heures.</p>
+<div class="qr-block">
+  <img src="{{ qr }}" alt="QR code d'activation">
+  <p><code>{{ activation_url }}</code></p>
+</div>
+<p><a class="btn" href="/console/agents">Retour au tableau</a></p>
+{% endblock %}

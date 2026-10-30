@@ -1,0 +1,35 @@
+{% extends "base.html" %}
+{% block title %}Fiche agent — Console Kibaré{% endblock %}
+{% block content %}
+<h1>{{ agent.prenom }} {{ agent.nom }}</h1>
+<p class="muted">Matricule : {{ agent.matricule }}</p>
+<table class="table">
+  <tr><th>Ministère</th><td>{{ agent.ministere.value }}</td></tr>
+  <tr><th>Direction</th><td>{{ agent.direction }}</td></tr>
+  <tr><th>Service</th><td>{{ agent.service or "—" }}</td></tr>
+  <tr><th>Fonction</th><td>{{ agent.fonction }}</td></tr>
+  <tr><th>Rôle</th><td>{{ agent.role.value }}</td></tr>
+  <tr><th>Statut</th><td>{{ agent.status.value }}</td></tr>
+  <tr><th>Enrôlé le</th><td>{{ agent.date_enrolement }}</td></tr>
+</table>
+
+<h2>Appareils connectés</h2>
+{% if devices %}
+<ul>
+  {% for d in devices %}<li>{{ d.get('device_id') }} — {{ d.get('last_seen_ts') }}</li>{% endfor %}
+</ul>
+{% else %}
+<p class="muted">Aucun appareil connu.</p>
+{% endif %}
+
+<h2 class="danger-title">Révoquer cet agent</h2>
+<p class="muted">Action irréversible : coupe l'accès immédiatement (Keycloak + Synapse) et
+   efface les données de l'appareil à la prochaine connexion.</p>
+<form method="post" action="/console/agents/{{ agent.matricule }}/revoke" class="form">
+  <label>Retapez le matricule pour confirmer
+    <input name="confirmation" required>
+  </label>
+  <label>Motif (facultatif) <input name="motif"></label>
+  <button class="btn btn-danger" type="submit">Révoquer</button>
+</form>
+{% endblock %}

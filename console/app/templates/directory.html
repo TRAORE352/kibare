@@ -1,0 +1,14 @@
+{% extends "base.html" %}
+{% block title %}Annuaire — Console Kibaré{% endblock %}
+{% block content %}
+<h1>Annuaire</h1>
+<p class="muted">Agents actifs, par ministère et par fonction.</p>
+{% for ministere, agents in by_ministere.items() %}
+<h2>{{ ministere }}</h2>
+<ul>
+  {% for a in agents %}<li>{{ a.prenom }} {{ a.nom }} — {{ a.fonction }}</li>{% endfor %}
+</ul>
+{% else %}
+<p class="muted">Aucun agent actif.</p>
+{% endfor %}
+{% endblock %}

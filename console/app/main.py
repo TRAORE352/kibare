@@ -1,168 +1,118 @@
-# app/main.py - Point d'entrée FastAPI
+# app/main.py — Point d'entrée de la Console Kibaré (FastAPI)
 """
-Console Kibaré - Application d'administration pour la messagerie souveraine.
-Gère l'enrôlement, l'activation, la révocation et l'annuaire des agents.
-"""
+Application web d'administration de la messagerie souveraine Kibaré.
 
+Connexion des admins : Keycloak (OIDC) via la bibliothèque Authlib.
+Accès réservé aux rôles super-admin et admin-ministere (voir app/auth.py).
+"""
 from contextlib import asynccontextmanager
-from fastapi import FastAPI, Request, Depends, HTTPException, status
-from fastapi.responses import HTMLResponse, RedirectResponse
+
+from fastapi import FastAPI, Depends, Request
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
-from fastapi.templating import Jinja2Templates
-from fastapi.security import OAuth2AuthorizationCodeBearer
+from starlette.middleware.sessions import SessionMiddleware
+from authlib.integrations.starlette_client import OAuth
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
-import httpx
 
 from app.config import settings
 from app.database import init_db, get_db
-from app.models import ActivationToken, Agent, RevocationLog
 from app.keycloak_client import KeycloakAdminClient
 from app.synapse_client import SynapseAdminClient
-from app.auth import get_current_admin, require_super_admin, require_ministere_admin
-from app.routers import agents, activation, revocation, directory, journal, health
+from app.models import Agent, AgentRole, AgentStatus
+from app.routers import health, agents, activation, revocation, directory, journal
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Démarrage
+    """Au démarrage : crée les tables et initialise les clients admin."""
     await init_db()
-    # Initialiser les clients admin
-    app.state.keycloak = KeycloakAdminClient(
-        base_url=settings.KEYCLOAK_ADMIN_URL,
-        admin_user=settings.KEYCLOAK_ADMIN_USER,
-        admin_password=settings.KEYCLOAK_ADMIN_PASSWORD,
-        realm=settings.KEYCLOAK_REALM,
-    )
-    app.state.synapse = SynapseAdminClient(
-        base_url=settings.SYNAPSE_ADMIN_URL,
-        admin_token=settings.SYNAPSE_ADMIN_TOKEN,
-    )
+    app.state.keycloak = KeycloakAdminClient()
+    app.state.synapse = SynapseAdminClient()
     await app.state.keycloak.__aenter__()
     await app.state.synapse.__aenter__()
     yield
-    # Arrêt
     await app.state.keycloak.__aexit__(None, None, None)
     await app.state.synapse.__aexit__(None, None, None)
 
 
-app = FastAPI(
-    title="Console Kibaré",
-    description="Administration de la messagerie souveraine Kibaré",
-    version="1.0.0",
-    lifespan=lifespan,
+app = FastAPI(title="Console Kibaré", version="1.0.0", lifespan=lifespan)
+
+# Session signée (cookie HttpOnly) pour la connexion OIDC.
+# https_only=False : la Console est DERRIÈRE Caddy qui termine le TLS ;
+# le cookie est tout de même HttpOnly + SameSite (par défaut de SessionMiddleware).
+app.add_middleware(
+    SessionMiddleware, secret_key=settings.session_secret,
+    https_only=False, max_age=1800,
 )
 
-# Templates Jinja2
-templates = Jinja2Templates(directory="app/templates")
+# ----------------------------------------------------------------------
+# Client OIDC (Authlib) pour Keycloak
+# ----------------------------------------------------------------------
+oauth = OAuth()
+oauth.register(
+    name="keycloak",
+    client_id="kibare-console",
+    client_secret=settings.keycloak_console_client_secret,
+    # URL publique pour la redirection du NAVIGATEUR :
+    authorize_url=f"{settings.KEYCLOAK_PUBLIC_URL}/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/auth",
+    # URL interne pour l'échange de code et le userinfo (côté serveur) :
+    access_token_url=f"{settings.KEYCLOAK_INTERNAL_URL}/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/token",
+    userinfo_endpoint=f"{settings.KEYCLOAK_INTERNAL_URL}/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/userinfo",
+    client_kwargs={"scope": "openid profile email"},
+)
 
-# Fichiers statiques (CSS, JS, polices)
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
+app.mount("/console/static", StaticFiles(directory="app/static"), name="static")
 
-# Inclure les routeurs
 app.include_router(health.router)
+app.include_router(activation.router)   # /activer/{token} (public)
 app.include_router(agents.router)
-app.include_router(activation.router)
 app.include_router(revocation.router)
 app.include_router(directory.router)
 app.include_router(journal.router)
 
 
-# Page d'accueil - redirection selon le rôle
-@app.get("/", response_class=HTMLResponse)
-async def root(request: Request, current_admin=Depends(get_current_admin)):
+@app.get("/console/login")
+async def login(request: Request):
+    """Redirige vers Keycloak pour l'authentification OIDC."""
+    redirect_uri = f"{settings.SERVER_ADDRESS}/console/callback"
+    return await oauth.keycloak.authorize_redirect(request, redirect_uri)
+
+
+@app.get("/console/callback")
+async def oidc_callback(request: Request, db: AsyncSession = Depends(get_db)):
+    """
+    Retour de Keycloak : échange le code contre des jetons, récupère le
+    matricule (preferred_username) via userinfo, puis ouvre la session.
+    """
+    redirect_uri = f"{settings.SERVER_ADDRESS}/console/callback"
+    try:
+        token = await oauth.keycloak.authorize_access_token(request, redirect_uri=redirect_uri)
+        userinfo = await oauth.keycloak.userinfo(token=token)
+    except Exception:
+        return RedirectResponse(url="/console/login")
+
+    matricule = userinfo.get("preferred_username")
+    if not matricule:
+        return RedirectResponse(url="/console/login")
+
+    # L'utilisateur doit être un agent ACTIF avec un rôle d'administration.
+    result = await db.execute(select(Agent).where(Agent.matricule == matricule))
+    agent = result.scalar_one_or_none()
+    if (not agent or agent.status != AgentStatus.ACTIVE
+            or agent.role not in (AgentRole.SUPER_ADMIN, AgentRole.ADMIN_MINISTERE)):
+        return RedirectResponse(url="/console/login")
+
+    request.session["matricule"] = matricule
     return RedirectResponse(url="/console/agents")
 
 
-# Page de connexion (OIDC Keycloak)
-@app.get("/login", response_class=HTMLResponse)
-async def login_page(request: Request):
-    # Rediriger vers Keycloak pour l'authentification
-    auth_url = (
-        f"{settings.KEYCLOAK_ADMIN_URL}/realms/{settings.KEYCLOAK_REALM}"
-        f"/protocol/openid-connect/auth"
-        f"?client_id=kibare-console"
-        f"&redirect_uri={settings.SERVER_ADDRESS}/console/callback"
-        f"&response_type=code"
-        f"&scope=openid+profile+roles+email"
-    )
-    return RedirectResponse(url=auth_url)
-
-
-# Callback OIDC
-@app.get("/callback")
-async def oidc_callback(request: Request, code: str, db: AsyncSession = Depends(get_db)):
-    # Échanger le code contre des tokens
-    async with httpx.AsyncClient() as client:
-        token_response = await client.post(
-            f"{settings.KEYCLOAK_ADMIN_URL}/realms/{settings.KEYCLOAK_REALM}/protocol/openid-connect/token",
-            data={
-                "grant_type": "authorization_code",
-                "code": code,
-                "client_id": "kibare-console",
-                "client_secret": settings.KEYCLOAK_CONSOLE_CLIENT_SECRET,
-                "redirect_uri": f"{settings.SERVER_ADDRESS}/console/callback",
-            },
-        )
-        tokens = token_response.json()
-    
-    # Décoder le token ID pour récupérer les rôles
-    from app.auth import decode_token
-    id_token = decode_token(tokens["id_token"])
-    
-    # Vérifier que l'utilisateur a un rôle admin
-    realm_roles = id_token.get("realm_roles", [])
-    if "super-admin" not in realm_roles and "admin-ministere" not in realm_roles:
-        raise HTTPException(status_code=403, detail="Accès réservé aux administrateurs")
-    
-    # Créer la session (simplifié : stocker dans un cookie sécurisé)
-    response = RedirectResponse(url="/console/agents")
-    response.set_cookie(
-        "access_token",
-        tokens["access_token"],
-        httponly=True,
-        secure=True,
-        samesite="lax",
-        max_age=1800,  # 30 min
-    )
-    response.set_cookie(
-        "refresh_token",
-        tokens["refresh_token"],
-        httponly=True,
-        secure=True,
-        samesite="lax",
-        max_age=2592000,  # 30 jours
-    )
-    response.set_cookie(
-        "user_roles",
-        ",".join(realm_roles),
-        httponly=True,
-        secure=True,
-        samesite="lax",
-        max_age=1800,
-    )
-    response.set_cookie(
-        "user_ministere",
-        id_token.get("ministere", ""),
-        httponly=True,
-        secure=True,
-        samesite="lax",
-        max_age=1800,
-    )
-    return response
-
-
-# Déconnexion
-@app.get("/logout")
-async def logout():
-    response = RedirectResponse(url="/")
-    response.delete_cookie("access_token")
-    response.delete_cookie("refresh_token")
-    response.delete_cookie("user_roles")
-    response.delete_cookie("user_ministere")
-    # Déconnexion Keycloak
+@app.get("/console/logout")
+async def logout(request: Request):
+    """Déconnecte : vide la session locale, puis redirige vers Keycloak."""
+    request.session.clear()
     logout_url = (
-        f"{settings.KEYCLOAK_ADMIN_URL}/realms/{settings.KEYCLOAK_REALM}"
+        f"{settings.KEYCLOAK_PUBLIC_URL}/realms/{settings.KEYCLOAK_REALM}"
         f"/protocol/openid-connect/logout"
-        f"?post_logout_redirect_uri={settings.SERVER_ADDRESS}/console/"
     )
     return RedirectResponse(url=logout_url)
