@@ -88,8 +88,6 @@
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
-      "defaultClientScopes": ["openid", "profile"],
-      "optionalClientScopes": [],
       "access": {
         "view": true,
         "configure": true,
@@ -133,8 +131,6 @@
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
-      "defaultClientScopes": ["openid", "profile", "roles", "email"],
-      "optionalClientScopes": [],
       "access": {
         "view": true,
         "configure": true,
@@ -176,8 +172,6 @@
       "authenticationFlowBindingOverrides": {},
       "fullScopeAllowed": true,
       "nodeReRegistrationTimeout": -1,
-      "defaultClientScopes": ["openid", "profile"],
-      "optionalClientScopes": [],
       "access": {
         "view": true,
         "configure": true,
@@ -185,47 +179,6 @@
       }
     }
   ],
-  "clientScopes": [
-    {
-      "name": "roles",
-      "description": "Rôles Keycloak mappés dans le token ID",
-      "protocol": "openid-connect",
-      "attributes": {
-        "include.in.token.scope": "true",
-        "display.on.consent.screen": "false"
-      },
-      "protocolMappers": [
-        {
-          "name": "realm roles",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-realm-role-mapper",
-          "config": {
-            "multivalued": "true",
-            "userinfo.token.claim": "true",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "realm_roles",
-            "jsonType.label": "String"
-          }
-        },
-        {
-          "name": "ministere",
-          "protocol": "openid-connect",
-          "protocolMapper": "oidc-usermodel-attribute-mapper",
-          "config": {
-            "userinfo.token.claim": "true",
-            "id.token.claim": "true",
-            "access.token.claim": "true",
-            "claim.name": "ministere",
-            "jsonType.label": "String",
-            "user.attribute": "ministere"
-          }
-        }
-      ]
-    }
-  ],
-  "defaultDefaultClientScopes": ["openid", "profile"],
-  "defaultOptionalClientScopes": ["roles", "email"],
   "requiredActions": [
     {
       "alias": "CONFIGURE_TOTP",
