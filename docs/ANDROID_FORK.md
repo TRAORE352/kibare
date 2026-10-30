@@ -23,6 +23,7 @@ Variante cible : **F-Droid** (flavor `fdroid`), sans aucune bibliothèque Google
 | Serveur par défaut fixé | `vector-config/src/main/res/values/config.xml` (`matrix_org_server_url`) | `https://10.228.115.221` (au lieu de matrix.org) |
 | Sélection de texte désactivée | `.../item_timeline_event_text_message_{plain,rich}_stub.xml` | `android:textIsSelectable="false"` |
 | Inscription retirée | `vector/.../features/VectorFeatures.kt` | `isOnboardingAlreadyHaveAccountSplashEnabled=false` + `isOnboardingCombinedRegisterEnabled=false` |
+| « Ouvrir avec… » retiré | `vector/.../detail/TimelineFragment.kt` (`openFile`) | remplacé par un message « Consultation interne uniquement » |
 
 ## 2. Identité de l'application
 

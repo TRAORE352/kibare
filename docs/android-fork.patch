@@ -261,7 +261,7 @@ index 6d1b975..b612408 100644
      override fun allowExternalUnifiedPushDistributors(): Boolean = Config.ALLOW_EXTERNAL_UNIFIED_PUSH_DISTRIBUTORS
      override fun isScreenSharingEnabled(): Boolean = true
 diff --git a/vector/src/main/java/im/vector/app/features/home/room/detail/TimelineFragment.kt b/vector/src/main/java/im/vector/app/features/home/room/detail/TimelineFragment.kt
-index 01be29d..9a196d9 100644
+index 01be29d..2dfde5c 100644
 --- a/vector/src/main/java/im/vector/app/features/home/room/detail/TimelineFragment.kt
 +++ b/vector/src/main/java/im/vector/app/features/home/room/detail/TimelineFragment.kt
 @@ -325,6 +325,8 @@ class TimelineFragment :
@@ -273,7 +273,27 @@ index 01be29d..9a196d9 100644
          setupNotificationView()
          setupJumpToReadMarkerView()
          setupActiveCallView()
-@@ -764,6 +766,17 @@ class TimelineFragment :
+@@ -620,12 +622,13 @@ class TimelineFragment :
+     }
+ 
+     private fun openFile(action: RoomDetailViewEvents.OpenFile) {
+-        val intent = Intent(Intent.ACTION_VIEW).apply {
+-            setDataAndTypeAndNormalize(action.uri, action.mimeType)
+-            addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION or Intent.FLAG_ACTIVITY_NEW_TASK)
+-        }
+-
+-        requireActivity().safeStartActivity(intent)
++        // KIBARÉ : consultation interne uniquement — on N'OUVRE PAS le fichier
++        // avec une application externe (protection « Zéro fuite », section 6.3).
++        android.widget.Toast.makeText(
++                requireContext(),
++                "Consultation interne uniquement",
++                android.widget.Toast.LENGTH_SHORT
++        ).show()
+     }
+ 
+     private fun installApk(action: RoomDetailViewEvents.OpenFile) {
+@@ -764,6 +767,17 @@ class TimelineFragment :
  //        }
      }
  
