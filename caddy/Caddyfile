@@ -1,7 +1,6 @@
 # =====================================================================
 # Caddyfile — reverse proxy HTTPS avec CA locale (aucun Let's Encrypt)
-# Point d'entrée unique. L'adresse du serveur est injectée via la
-# variable d'environnement KIBARE_SERVER_ADDRESS.
+# Point d'entrée unique sur le port 443.
 # =====================================================================
 
 {
@@ -9,15 +8,17 @@
     admin off
     auto_https off
 
-    # Désactive HTTP/3 (QUIC) : il nécessiterait le port 443 UDP, qui n'est
-    # pas publié par Docker. On garde HTTP/1.1 + HTTP/2 (TCP), plus robuste.
+    # Désactive HTTP/3 (QUIC) : il nécessiterait le port 443 UDP non publié.
     servers {
         protocols h1 h2
     }
 }
 
-# Serveur principal : adresse IP (canonique) + alias DNS locaux
-https://{$KIBARE_SERVER_ADDRESS}, https://kibare.test, https://kibare.lan {
+# Point d'entrée unique : « :443 » = toutes les connexions HTTPS sur 443.
+# IMPORTANT : on n'utilise PAS l'adresse IP dans l'adresse du site, car derrière
+# Docker la connexion arrive sur l'IP interne du conteneur et SANS SNI
+# (connexion par IP) : l'IP du site ne correspondrait jamais.
+:443 {
     # Certificat serveur signé par la CA locale (généré par scripts/init.sh)
     tls /etc/caddy/kibare-server.crt /etc/caddy/kibare-server.key
 
@@ -32,18 +33,17 @@ https://{$KIBARE_SERVER_ADDRESS}, https://kibare.test, https://kibare.lan {
     }
 
     # Health check de la porte d'entrée
-    @health path /health
-    respond @health "OK" 200
+    handle /health {
+        respond "OK" 200
+    }
 
-    # Téléchargement du certificat CA (à installer sur le téléphone pour
-    # l'écran de connexion Keycloak, section 5.7 du brief).
+    # Téléchargement du certificat CA (à installer sur le téléphone)
     handle /kibare-ca.crt {
         root * /srv
         file_server
     }
 
-    # Synapse — API client Matrix. IMPORTANT : « handle » (pas « handle_path »)
-    # conserve le préfixe /_matrix lors du transfert vers Synapse.
+    # Synapse — API client Matrix (on conserve le préfixe /_matrix)
     handle /_matrix/* {
         reverse_proxy synapse:8008
     }
@@ -58,12 +58,12 @@ https://{$KIBARE_SERVER_ADDRESS}, https://kibare.test, https://kibare.lan {
         reverse_proxy keycloak:8080
     }
 
-    # Console Kibaré — administration (sous /console)
+    # Console Kibaré — administration
     handle /console/* {
         reverse_proxy console:8000
     }
 
-    # Activation publique par lien à usage unique (sous /activer)
+    # Activation publique par lien à usage unique
     handle /activer/* {
         reverse_proxy console:8000
     }
