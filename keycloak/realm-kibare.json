@@ -1,0 +1,624 @@
+{
+  "realm": "kibare",
+  "enabled": true,
+  "displayName": "Kibaré - Messagerie souveraine",
+  "displayNameHtml": "<div class=\"kc-logo\"><span>Kibaré</span></div>",
+  "registrationAllowed": false,
+  "registrationEmailAsUsername": false,
+  "rememberMe": false,
+  "verifyEmail": false,
+  "resetPasswordAllowed": false,
+  "editUsernameAllowed": false,
+  "bruteForceProtected": true,
+  "permanentLockout": false,
+  "maxFailureWaitSeconds": 900,
+  "minimumQuickLoginWaitSeconds": 60,
+  "waitIncrementSeconds": 60,
+  "quickLoginCheckMilliSeconds": 1000,
+  "maxDeltaTimeSeconds": 43200,
+  "failureFactor": 30,
+  "accessTokenLifespan": 300,
+  "accessTokenLifespanForImplicitFlow": 300,
+  "ssoSessionIdleTimeout": 1800,
+  "ssoSessionMaxLifespan": 36000,
+  "offlineSessionIdleTimeout": 2592000,
+  "accessCodeLifespan": 60,
+  "accessCodeLifespanUserAction": 300,
+  "accessCodeLifespanLogin": 1800,
+  "actionTokenGeneratedByAdminLifespan": 43200,
+  "actionTokenGeneratedByUserLifespan": 300,
+  "oauth2DeviceCodeLifespan": 600,
+  "oauth2DevicePollingInterval": 5,
+  "browserSecurityHeaders": {
+    "xContentTypeOptions": "nosniff",
+    "xFrameOptions": "DENY",
+    "xRobotsTag": "none",
+    "contentSecurityPolicyReportOnly": "",
+    "contentSecurityPolicy": "frame-src 'self'; frame-ancestors 'none'; object-src 'none'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data:;"
+  },
+  "browserFlow": "browser",
+  "registrationFlow": "registration",
+  "directGrantFlow": "direct grant",
+  "resetCredentialsFlow": "reset credentials",
+  "clientAuthenticationFlow": "clients",
+  "dockerAuthenticationFlow": "docker auth",
+  "attributes": {
+    "cibaBackchannelTokenDeliveryMode": "poll"
+  },
+  "roles": {
+    "realm": [
+      {
+        "name": "super-admin",
+        "description": "Super administrateur - accès total à la Console Kibaré",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "kibare"
+      },
+      {
+        "name": "admin-ministere",
+        "description": "Administrateur ministère - gère les agents de son ministère uniquement",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "kibare"
+      },
+      {
+        "name": "agent",
+        "description": "Agent enrôlé - accès à l'application mobile uniquement",
+        "composite": false,
+        "clientRole": false,
+        "containerId": "kibare"
+      }
+    ],
+    "client": {}
+  },
+  "groups": [],
+  "clients": [
+    {
+      "clientId": "synapse",
+      "name": "Synapse Matrix",
+      "description": "Client OIDC pour le serveur Matrix Synapse",
+      "rootUrl": "https://kibare.test",
+      "adminUrl": "https://kibare.test/_synapse/admin",
+      "baseUrl": "/",
+      "surrogateAuthRequired": false,
+      "enabled": true,
+      "alwaysDisplayInConsole": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "CHANGE_ME_SYNAPSE_OIDC_SECRET",
+      "redirectUris": [
+        "https://kibare.test/_synapse/oidc/callback",
+        "https://192.168.10.10/_synapse/oidc/callback"
+      ],
+      "webOrigins": [
+        "https://kibare.test",
+        "https://192.168.10.10"
+      ],
+      "notBefore": 0,
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": false,
+      "publicClient": false,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "post.logout.redirect.uris": "+",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "backchannel.logout.session.required": "true",
+        "backchannel.logout.revoke.offline.tokens": "true",
+        "client.secret.creation.time": "0",
+        "require.pushed.authorization.requests": "false",
+        "tls.client.certificate.bound.access.tokens": "false",
+        "use.refresh.tokens": "true"
+      },
+      "authenticationFlowBindingOverrides": {},
+      "fullScopeAllowed": true,
+      "nodeReRegistrationTimeout": -1,
+      "defaultClientScopes": [
+        "openid",
+        "profile"
+      ],
+      "optionalClientScopes": [],
+      "access": {
+        "view": true,
+        "configure": true,
+        "manage": true
+      }
+    },
+    {
+      "clientId": "kibare-console",
+      "name": "Console Kibaré",
+      "description": "Application d'administration Kibaré (FastAPI)",
+      "rootUrl": "https://kibare.test/console",
+      "adminUrl": "https://kibare.test/console",
+      "baseUrl": "/console/",
+      "surrogateAuthRequired": false,
+      "enabled": true,
+      "alwaysDisplayInConsole": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "CHANGE_ME_CONSOLE_OIDC_SECRET",
+      "redirectUris": [
+        "https://kibare.test/console/callback",
+        "https://192.168.10.10/console/callback"
+      ],
+      "webOrigins": [
+        "https://kibare.test",
+        "https://192.168.10.10"
+      ],
+      "notBefore": 0,
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": true,
+      "serviceAccountsEnabled": true,
+      "authorizationServicesEnabled": true,
+      "publicClient": false,
+      "frontchannelLogout": true,
+      "protocol": "openid-connect",
+      "attributes": {
+        "post.logout.redirect.uris": "+",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "backchannel.logout.session.required": "true",
+        "backchannel.logout.revoke.offline.tokens": "true",
+        "client.secret.creation.time": "0",
+        "require.pushed.authorization.requests": "false",
+        "tls.client.certificate.bound.access.tokens": "false",
+        "use.refresh.tokens": "true"
+      },
+      "authenticationFlowBindingOverrides": {},
+      "fullScopeAllowed": true,
+      "nodeReRegistrationTimeout": -1,
+      "defaultClientScopes": [
+        "openid",
+        "profile",
+        "roles",
+        "email"
+      ],
+      "optionalClientScopes": [],
+      "access": {
+        "view": true,
+        "configure": true,
+        "manage": true
+      }
+    },
+    {
+      "clientId": "kibare-android",
+      "name": "Kibaré Android",
+      "description": "Application mobile Kibaré (fork Element Android, variante F-Droid)",
+      "rootUrl": "https://kibare.test",
+      "adminUrl": "",
+      "baseUrl": "",
+      "surrogateAuthRequired": false,
+      "enabled": true,
+      "alwaysDisplayInConsole": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "CHANGE_ME_ANDROID_OIDC_SECRET",
+      "redirectUris": [
+        "org.kibare.app://oauth2redirect"
+      ],
+      "webOrigins": [],
+      "notBefore": 0,
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "authorizationServicesEnabled": false,
+      "publicClient": true,
+      "frontchannelLogout": false,
+      "protocol": "openid-connect",
+      "attributes": {
+        "post.logout.redirect.uris": "+",
+        "oauth2.device.authorization.grant.enabled": "false",
+        "backchannel.logout.session.required": "false",
+        "backchannel.logout.revoke.offline.tokens": "false",
+        "client.secret.creation.time": "0",
+        "require.pushed.authorization.requests": "false",
+        "tls.client.certificate.bound.access.tokens": "false",
+        "use.refresh.tokens": "true",
+        "pkce.code.challenge.method": "S256"
+      },
+      "authenticationFlowBindingOverrides": {},
+      "fullScopeAllowed": true,
+      "nodeReRegistrationTimeout": -1,
+      "defaultClientScopes": [
+        "openid",
+        "profile"
+      ],
+      "optionalClientScopes": [],
+      "access": {
+        "view": true,
+        "configure": true,
+        "manage": true
+      }
+    }
+  ],
+  "clientScopes": [
+    {
+      "name": "roles",
+      "description": "Rôles Keycloak mappés dans le token ID",
+      "protocol": "openid-connect",
+      "attributes": {
+        "include.in.token.scope": "true",
+        "display.on.consent.screen": "false",
+        "gui.order": ""
+      },
+      "protocolMappers": [
+        {
+          "name": "realm roles",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-usermodel-realm-role-mapper",
+          "config": {
+            "multivalued": "true",
+            "userinfo.token.claim": "true",
+            "id.token.claim": "true",
+            "access.token.claim": "true",
+            "claim.name": "realm_roles",
+            "jsonType.label": "String"
+          }
+        }
+      ]
+    }
+  ],
+  "defaultDefaultClientScopes": [
+    "openid",
+    "profile"
+  ],
+  "defaultOptionalClientScopes": [
+    "roles",
+    "email"
+  ],
+  "identityProviders": [],
+  "components": {
+    "org.keycloak.keys.KeyProvider": [
+      {
+        "name": "rsa-generated",
+        "providerId": "rsa-generated",
+        "providerType": "org.keycloak.keys.KeyProvider",
+        "parentId": "kibare",
+        "config": {
+          "priority": ["100"],
+          "enabled": ["true"],
+          "active": ["true"],
+          "keySize": ["2048"],
+          "algorithm": ["RS256"]
+        }
+      }
+    ],
+    "org.keycloak.authentication.authenticators.browser.UsernamePasswordFormFactory": [
+      {
+        "name": "UsernamePasswordForm",
+        "providerId": "authenticator",
+        "providerType": "org.keycloak.authentication.authenticators.browser.UsernamePasswordFormFactory",
+        "parentId": "browser",
+        "config": {}
+      }
+    ],
+    "org.keycloak.authentication.authenticators.browser.TOTPAuthenticatorFactory": [
+      {
+        "name": "TOTP",
+        "providerId": "authenticator",
+        "providerType": "org.keycloak.authentication.authenticators.browser.TOTPAuthenticatorFactory",
+        "parentId": "browser",
+        "config": {}
+      }
+    ],
+    "org.keycloak.authentication.requiredactions.TOTPSetupFactory": [
+      {
+        "name": "CONFIGURE_TOTP",
+        "providerId": "required-action",
+        "providerType": "org.keycloak.authentication.requiredactions.TOTPSetupFactory",
+        "parentId": "kibare",
+        "config": {
+          "totp.algorithm": ["HmacSHA1"],
+          "totp.digits": ["6"],
+          "totp.period": ["30"],
+          "totp.look.ahead.window": ["1"]
+        }
+      }
+    ]
+  },
+  "authenticationFlows": [
+    {
+      "alias": "browser",
+      "description": "Flux d'authentification navigateur avec OTP obligatoire",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "UsernamePasswordForm",
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "userSetupAllowed": false,
+          "autheticatorFlow": false
+        },
+        {
+          "authenticator": "TOTP",
+          "requirement": "REQUIRED",
+          "priority": 20,
+          "userSetupAllowed": false,
+          "autheticatorFlow": false
+        }
+      ]
+    }
+  ],
+  "requiredActions": [
+    {
+      "providerId": "CONFIGURE_TOTP",
+      "name": "CONFIGURE_TOTP",
+      "enabled": true,
+      "defaultAction": true,
+      "priority": 10,
+      "config": {
+        "totp.algorithm": ["HmacSHA1"],
+        "totp.digits": ["6"],
+        "totp.period": ["30"],
+        "totp.look.ahead.window": ["1"]
+      }
+    },
+    {
+      "providerId": "UPDATE_PASSWORD",
+      "name": "UPDATE_PASSWORD",
+      "enabled": true,
+      "defaultAction": false,
+      "priority": 20,
+      "config": {}
+    },
+    {
+      "providerId": "UPDATE_PROFILE",
+      "name": "UPDATE_PROFILE",
+      "enabled": false,
+      "defaultAction": false,
+      "priority": 30,
+      "config": {}
+    }
+  ],
+  "users": [
+    {
+      "username": "demo-000",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Admin",
+      "lastName": "PLATEFORME",
+      "email": "admin.plateforme@kibare.test",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DemoPass000!",
+          "temporary": false
+        }
+      ],
+      "requiredActions": ["CONFIGURE_TOTP"],
+      "realmRoles": ["super-admin"],
+      "attributes": {
+        "matricule": ["demo-000"],
+        "ministere": ["MTDPCE"],
+        "direction": ["DGTD"],
+        "service": ["Exploitation"],
+        "fonction": ["Administrateur système"]
+      }
+    },
+    {
+      "username": "demo-101",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Awa",
+      "lastName": "KONATÉ",
+      "email": "a.konate@kibare.test",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DemoPass101!",
+          "temporary": false
+        }
+      ],
+      "requiredActions": ["CONFIGURE_TOTP"],
+      "realmRoles": ["admin-ministere"],
+      "attributes": {
+        "matricule": ["demo-101"],
+        "ministere": ["MTDPCE"],
+        "direction": ["DGTD"],
+        "service": ["Sécurité des SI"],
+        "fonction": ["Cheffe de service"]
+      }
+    },
+    {
+      "username": "demo-102",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Issouf",
+      "lastName": "SAWADOGO",
+      "email": "i.sawadogo@kibare.test",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DemoPass102!",
+          "temporary": false
+        }
+      ],
+      "requiredActions": ["CONFIGURE_TOTP"],
+      "realmRoles": ["agent"],
+      "attributes": {
+        "matricule": ["demo-102"],
+        "ministere": ["MTDPCE"],
+        "direction": ["DGTD"],
+        "service": ["Sécurité des SI"],
+        "fonction": ["Analyste sécurité"]
+      }
+    },
+    {
+      "username": "demo-201",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Mariam",
+      "lastName": "OUÉDRAOGO",
+      "email": "m.ouedraogo@kibare.test",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DemoPass201!",
+          "temporary": false
+        }
+      ],
+      "requiredActions": ["CONFIGURE_TOTP"],
+      "realmRoles": ["admin-ministere"],
+      "attributes": {
+        "matricule": ["demo-201"],
+        "ministere": ["SANTE"],
+        "direction": ["Dir. de la veille sanitaire"],
+        "service": ["Direction"],
+        "fonction": ["Directrice"]
+      }
+    },
+    {
+      "username": "demo-202",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Boukary",
+      "lastName": "ZONGO",
+      "email": "b.zongo@kibare.test",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DemoPass202!",
+          "temporary": false
+        }
+      ],
+      "requiredActions": ["CONFIGURE_TOTP"],
+      "realmRoles": ["agent"],
+      "attributes": {
+        "matricule": ["demo-202"],
+        "ministere": ["SANTE"],
+        "direction": ["Dir. de la veille sanitaire"],
+        "service": ["Direction"],
+        "fonction": ["Épidémiologiste"]
+      }
+    },
+    {
+      "username": "demo-203",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Karim",
+      "lastName": "TIENDRÉBÉOGO",
+      "email": "k.tiendrebeogo@kibare.test",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DemoPass203!",
+          "temporary": false
+        }
+      ],
+      "requiredActions": ["CONFIGURE_TOTP"],
+      "realmRoles": ["agent"],
+      "attributes": {
+        "matricule": ["demo-203"],
+        "ministere": ["SANTE"],
+        "direction": ["Dir. de la veille sanitaire"],
+        "service": ["Direction"],
+        "fonction": ["Chargé de liaison"]
+      }
+    },
+    {
+      "username": "demo-301",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Salif",
+      "lastName": "COMPAORÉ",
+      "email": "s.compaore@kibare.test",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DemoPass301!",
+          "temporary": false
+        }
+      ],
+      "requiredActions": ["CONFIGURE_TOTP"],
+      "realmRoles": ["admin-ministere"],
+      "attributes": {
+        "matricule": ["demo-301"],
+        "ministere": ["SECURITE"],
+        "direction": ["Dir. des opérations"],
+        "service": ["Direction"],
+        "fonction": ["Directeur"]
+      }
+    },
+    {
+      "username": "demo-302",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Rasmata",
+      "lastName": "KABORÉ",
+      "email": "r.kabore@kibare.test",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DemoPass302!",
+          "temporary": false
+        }
+      ],
+      "requiredActions": ["CONFIGURE_TOTP"],
+      "realmRoles": ["agent"],
+      "attributes": {
+        "matricule": ["demo-302"],
+        "ministere": ["SECURITE"],
+        "direction": ["Dir. des opérations"],
+        "service": ["Direction"],
+        "fonction": ["Officière de liaison"]
+      }
+    },
+    {
+      "username": "demo-401",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Adama",
+      "lastName": "OUATTARA",
+      "email": "a.ouattara@kibare.test",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DemoPass401!",
+          "temporary": false
+        }
+      ],
+      "requiredActions": ["CONFIGURE_TOTP"],
+      "realmRoles": ["admin-ministere"],
+      "attributes": {
+        "matricule": ["demo-401"],
+        "ministere": ["MEF"],
+        "direction": ["Dir. du budget"],
+        "service": ["Direction"],
+        "fonction": ["Directeur"]
+      }
+    },
+    {
+      "username": "demo-402",
+      "enabled": true,
+      "emailVerified": true,
+      "firstName": "Fatimata",
+      "lastName": "DIALLO",
+      "email": "f.diallo@kibare.test",
+      "credentials": [
+        {
+          "type": "password",
+          "value": "DemoPass402!",
+          "temporary": false
+        }
+      ],
+      "requiredActions": ["CONFIGURE_TOTP"],
+      "realmRoles": ["agent"],
+      "attributes": {
+        "matricule": ["demo-402"],
+        "ministere": ["MEF"],
+        "direction": ["Dir. du budget"],
+        "service": ["Direction"],
+        "fonction": ["Chargée d'études"]
+      }
+    }
+  ]
+}
