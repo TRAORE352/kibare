@@ -29,11 +29,12 @@ Variante cible : **F-Droid** (flavor `fdroid`), sans aucune bibliothèque Google
 
 ## 3. Serveur et connexion (section 8.2)
 
-- **Serveur par défaut fixé** à `https://<KIBARE_SERVER_ADDRESS>` : localiser la
-  valeur par défaut (aujourd'hui `matrix-client.matrix.org`) dans le module
-  `vector-config` ou l'onboarding, et la remplacer. Prévoir une lecture depuis
-  `BuildConfig` (champ ajouté dans `vector-app/build.gradle`) + un écran caché
-  « Configuration du serveur » accessible avant l'activation (section 5.8).
+- **Serveur par défaut fixé** à `https://<KIBARE_SERVER_ADDRESS>` : l'écran de
+  saisie de l'URL du serveur est
+  `vector/src/main/java/im/vector/app/features/onboarding/ftueauth/FtueAuthServerUrlFormFragment.kt`.
+  Le supprimer du flux d'onboarding et hardcoder l'URL (via `BuildConfig` ajouté
+  dans `vector-app/build.gradle`). Prévoir un écran caché « Configuration du
+  serveur » accessible avant l'activation (section 5.8).
 - **Supprimer le choix du serveur** de l'écran d'accueil (plus de champ « Homeserver »).
 - **Supprimer « Créer un compte »** : l'écran d'accueil ne propose que
   « Se connecter » (SSO Keycloak).
