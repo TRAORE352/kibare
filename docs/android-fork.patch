@@ -1,3 +1,20 @@
+diff --git a/library/ui-strings/src/main/res/values/strings.xml b/library/ui-strings/src/main/res/values/strings.xml
+index eaf67e7..1ebd209 100644
+--- a/library/ui-strings/src/main/res/values/strings.xml
++++ b/library/ui-strings/src/main/res/values/strings.xml
+@@ -2235,9 +2235,9 @@
+ 
+     <string name="seen_by">Seen by</string>
+ 
+-    <string name="signed_out_title">You’re signed out</string>
+-    <string name="signed_out_notice">It can be due to various reasons:\n\n• You’ve changed your password on another session.\n\n• You have deleted this session from another session.\n\n• The administrator of your server has invalidated your access for security reason.</string>
+-    <string name="signed_out_submit">Sign in again</string>
++    <string name="signed_out_title">Accès révoqué</string>
++    <string name="signed_out_notice">Votre accès à Kibaré a été révoqué. Les données de cet appareil ont été effacées. Contactez votre administrateur.</string>
++    <string name="signed_out_submit">Se reconnecter</string>
+ 
+     <string name="soft_logout_title">You’re signed out</string>
+     <string name="soft_logout_signin_title">Sign in</string>
 diff --git a/matrix-sdk-android/src/main/res/raw/kibare_ca.pem b/matrix-sdk-android/src/main/res/raw/kibare_ca.pem
 new file mode 100644
 index 0000000..ad60bc0
@@ -183,3 +200,56 @@ index 2280a26..149e6d5 100644
          }
          add(EventSharedAction.CopyPermalink(eventId))
          if (session.myUserId != timelineEvent.root.senderId) {
+diff --git a/vector/src/main/java/im/vector/app/features/signout/hard/SignedOutActivity.kt b/vector/src/main/java/im/vector/app/features/signout/hard/SignedOutActivity.kt
+index e6b3b81..ad1b7a8 100644
+--- a/vector/src/main/java/im/vector/app/features/signout/hard/SignedOutActivity.kt
++++ b/vector/src/main/java/im/vector/app/features/signout/hard/SignedOutActivity.kt
+@@ -14,8 +14,6 @@ import android.view.View
+ import dagger.hilt.android.AndroidEntryPoint
+ import im.vector.app.core.platform.VectorBaseActivity
+ import im.vector.app.databinding.ActivitySignedOutBinding
+-import im.vector.app.features.MainActivity
+-import im.vector.app.features.MainActivityArgs
+ import org.matrix.android.sdk.api.failure.GlobalError
+ import timber.log.Timber
+ 
+@@ -33,16 +31,8 @@ class SignedOutActivity : VectorBaseActivity<ActivitySignedOutBinding>() {
+     override fun onCreate(savedInstanceState: Bundle?) {
+         super.onCreate(savedInstanceState)
+ 
+-        setupViews()
+-    }
+-
+-    private fun setupViews() {
+-        views.signedOutSubmit.debouncedClicks { submit() }
+-    }
+-
+-    private fun submit() {
+-        // All is already cleared when we are here
+-        MainActivity.restartApp(this, MainActivityArgs())
++        // KIBARÉ : écran terminal « Accès révoqué » — aucune action possible
++        // (le bouton de reconnexion a été retiré du layout).
+     }
+ 
+     companion object {
+diff --git a/vector/src/main/res/layout/activity_signed_out.xml b/vector/src/main/res/layout/activity_signed_out.xml
+index afbd6fa..7fbe5a1 100644
+--- a/vector/src/main/res/layout/activity_signed_out.xml
++++ b/vector/src/main/res/layout/activity_signed_out.xml
+@@ -32,14 +32,8 @@
+                 android:text="@string/signed_out_notice"
+                 android:textColor="?vctr_content_secondary" />
+ 
+-            <Button
+-                android:id="@+id/signedOutSubmit"
+-                style="@style/Widget.Vector.Button.Login"
+-                android:layout_width="wrap_content"
+-                android:layout_height="wrap_content"
+-                android:layout_gravity="end"
+-                android:layout_marginTop="22dp"
+-                android:text="@string/signed_out_submit" />
++            <!-- KIBARÉ : écran terminal « Accès révoqué » — pas de bouton de
++                 reconnexion (l'utilisateur doit contacter son administrateur). -->
+ 
+         </LinearLayout>
+ 

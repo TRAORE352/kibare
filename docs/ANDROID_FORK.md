@@ -18,6 +18,7 @@ Variante cible : **F-Droid** (flavor `fdroid`), sans aucune bibliothèque Google
 | Nom de l'application | `vector-app/build.gradle` (~l.250, 258) | `resValue ... "app_name"` → « Kibaré » |
 | CA locale intégrée | `matrix-sdk-android/src/main/res/raw/kibare_ca.pem` + `.../xml/network_security_config.xml` | confiance **uniquement** à la CA Kibaré |
 | Copie interdite | `vector/.../timeline/action/MessageActionsViewModel.kt` | `Copy`, `Save`, `Share`, `ViewSource` commentés (voir §5) |
+| Effacement à distance | `vector/.../signout/hard/SignedOutActivity.kt` + `.../layout/activity_signed_out.xml` + `library/ui-strings/.../strings.xml` | écran « Accès révoqué » terminal (bouton reconnexion retiré) |
 
 ## 2. Identité de l'application
 
