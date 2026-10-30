@@ -1,0 +1,47 @@
+# ============================================================
+# Kibaré — Fichiers à ne jamais versionner
+# ============================================================
+
+# Secrets et configuration locale (générés par scripts/init.sh)
+.env
+caddy/certs/
+caddy/data/
+*.key
+*.crt
+*.pem
+*.p12
+*.jks
+ca/
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.venv/
+venv/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Android (build Gradle)
+android/.gradle/
+android/build/
+android/app/build/
+android/local.properties
+*.apk
+*.aab
+*.keystore
+*.jks
+captures/
+
+# Éditeurs / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
+# Données de test locales
+data/
+*.sqlite
+*.db
