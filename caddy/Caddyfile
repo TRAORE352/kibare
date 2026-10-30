@@ -8,6 +8,12 @@
     # Désactive ACME / Let's Encrypt et l'API admin locale
     admin off
     auto_https off
+
+    # Désactive HTTP/3 (QUIC) : il nécessiterait le port 443 UDP, qui n'est
+    # pas publié par Docker. On garde HTTP/1.1 + HTTP/2 (TCP), plus robuste.
+    servers {
+        protocols h1 h2
+    }
 }
 
 # Serveur principal : adresse IP (canonique) + alias DNS locaux
