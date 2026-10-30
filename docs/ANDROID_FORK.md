@@ -19,7 +19,7 @@ Variante cible : **F-Droid** (flavor `fdroid`), sans aucune bibliothèque Google
 | CA locale intégrée | `matrix-sdk-android/src/main/res/raw/kibare_ca.pem` + `.../xml/network_security_config.xml` | confiance **uniquement** à la CA Kibaré |
 | Copie interdite | `vector/.../timeline/action/MessageActionsViewModel.kt` | `Copy`, `Save`, `Share`, `ViewSource` commentés (voir §5) |
 | Effacement à distance | `vector/.../signout/hard/SignedOutActivity.kt` + `.../layout/activity_signed_out.xml` + `library/ui-strings/.../strings.xml` | écran « Accès révoqué » terminal (bouton reconnexion retiré) |
-| Filigrane nominatif | `vector/.../core/ui/views/WatermarkView.kt` + `.../layout/fragment_timeline.xml` + `TimelineFragment.kt` | texte « Nom · Matricule · date » en diagonale, opacité ~7 % |
+| Filigrane nominatif | `vector/.../core/ui/views/WatermarkView.kt` + `fragment_timeline.xml` + `activity_big_image_viewer.xml` + `TimelineFragment.kt` + `BigImageViewerActivity.kt` | texte « Nom · Matricule · date » en diagonale, opacité ~7 % (conversation **et** visionneuse d'images) |
 | Serveur par défaut fixé | `vector-config/src/main/res/values/config.xml` (`matrix_org_server_url`) | `https://10.228.115.221` (au lieu de matrix.org) |
 | Sélection de texte désactivée | `.../item_timeline_event_text_message_{plain,rich}_stub.xml` | `android:textIsSelectable="false"` |
 | Inscription retirée | `vector/.../features/VectorFeatures.kt` | `isOnboardingAlreadyHaveAccountSplashEnabled=false` + `isOnboardingCombinedRegisterEnabled=false` |

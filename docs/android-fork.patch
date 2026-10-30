@@ -362,6 +362,38 @@ index 2280a26..149e6d5 100644
          }
          add(EventSharedAction.CopyPermalink(eventId))
          if (session.myUserId != timelineEvent.root.senderId) {
+diff --git a/vector/src/main/java/im/vector/app/features/media/BigImageViewerActivity.kt b/vector/src/main/java/im/vector/app/features/media/BigImageViewerActivity.kt
+index 57d631b..63d1c86 100644
+--- a/vector/src/main/java/im/vector/app/features/media/BigImageViewerActivity.kt
++++ b/vector/src/main/java/im/vector/app/features/media/BigImageViewerActivity.kt
+@@ -37,6 +37,9 @@ class BigImageViewerActivity : VectorBaseActivity<ActivityBigImageViewerBinding>
+                 .setTitle(intent.getStringExtra(EXTRA_TITLE))
+                 .allowBack()
+ 
++        // KIBARÉ : filigrane nominatif (protection « Zéro fuite »).
++        setupWatermark()
++
+         val uri = sessionHolder.getSafeActiveSession()
+                 ?.contentUrlResolver()
+                 ?.resolveFullSize(intent.getStringExtra(EXTRA_IMAGE_URL))
+@@ -49,6 +52,17 @@ class BigImageViewerActivity : VectorBaseActivity<ActivityBigImageViewerBinding>
+         }
+     }
+ 
++    // KIBARÉ : filigrane nominatif — « Nom · Matricule · date » en sur-impression.
++    private fun setupWatermark() {
++        val activeSession = sessionHolder.getSafeActiveSession() ?: return
++        val userId = activeSession.myUserId
++        val matricule = userId.substringAfter('@').substringBefore(':')
++        val displayName = activeSession.getUser(userId)?.displayName ?: matricule
++        val date = java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.FRANCE)
++                .format(java.util.Date())
++        views.watermarkView.watermarkText = "$displayName · $matricule · $date"
++    }
++
+     companion object {
+         private const val EXTRA_TITLE = "EXTRA_TITLE"
+         private const val EXTRA_IMAGE_URL = "EXTRA_IMAGE_URL"
 diff --git a/vector/src/main/java/im/vector/app/features/signout/hard/SignedOutActivity.kt b/vector/src/main/java/im/vector/app/features/signout/hard/SignedOutActivity.kt
 index e6b3b81..ad1b7a8 100644
 --- a/vector/src/main/java/im/vector/app/features/signout/hard/SignedOutActivity.kt
@@ -394,6 +426,26 @@ index e6b3b81..ad1b7a8 100644
      }
  
      companion object {
+diff --git a/vector/src/main/res/layout/activity_big_image_viewer.xml b/vector/src/main/res/layout/activity_big_image_viewer.xml
+index cd254db..d0df75e 100644
+--- a/vector/src/main/res/layout/activity_big_image_viewer.xml
++++ b/vector/src/main/res/layout/activity_big_image_viewer.xml
+@@ -29,4 +29,15 @@
+         app:layout_constraintTop_toBottomOf="@id/appBarLayout"
+         app:optimizeDisplay="true" />
+ 
++    <!-- KIBARÉ : filigrane nominatif sur la visionneuse d'images. -->
++    <im.vector.app.core.ui.views.WatermarkView
++        android:id="@+id/watermarkView"
++        android:layout_width="0dp"
++        android:layout_height="0dp"
++        android:importantForAccessibility="no"
++        app:layout_constraintBottom_toBottomOf="parent"
++        app:layout_constraintEnd_toEndOf="parent"
++        app:layout_constraintStart_toStartOf="parent"
++        app:layout_constraintTop_toBottomOf="@id/appBarLayout" />
++
+ </androidx.constraintlayout.widget.ConstraintLayout>
 diff --git a/vector/src/main/res/layout/activity_signed_out.xml b/vector/src/main/res/layout/activity_signed_out.xml
 index afbd6fa..7fbe5a1 100644
 --- a/vector/src/main/res/layout/activity_signed_out.xml
