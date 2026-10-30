@@ -20,6 +20,7 @@ Variante cible : **F-Droid** (flavor `fdroid`), sans aucune bibliothèque Google
 | Copie interdite | `vector/.../timeline/action/MessageActionsViewModel.kt` | `Copy`, `Save`, `Share`, `ViewSource` commentés (voir §5) |
 | Effacement à distance | `vector/.../signout/hard/SignedOutActivity.kt` + `.../layout/activity_signed_out.xml` + `library/ui-strings/.../strings.xml` | écran « Accès révoqué » terminal (bouton reconnexion retiré) |
 | Filigrane nominatif | `vector/.../core/ui/views/WatermarkView.kt` + `.../layout/fragment_timeline.xml` + `TimelineFragment.kt` | texte « Nom · Matricule · date » en diagonale, opacité ~7 % |
+| Serveur par défaut fixé | `vector-config/src/main/res/values/config.xml` (`matrix_org_server_url`) | `https://10.228.115.221` (au lieu de matrix.org) |
 
 ## 2. Identité de l'application
 

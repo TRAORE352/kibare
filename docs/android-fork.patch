@@ -130,6 +130,19 @@ index 3921733..5f120e2 100644
  
      const val ENABLE_LOCATION_SHARING = true
      const val LOCATION_MAP_TILER_KEY = "fU3vlMsMn4Jb6dnEIFsx"
+diff --git a/vector-config/src/main/res/values/config.xml b/vector-config/src/main/res/values/config.xml
+index 6ab8892..edebc7d 100755
+--- a/vector-config/src/main/res/values/config.xml
++++ b/vector-config/src/main/res/values/config.xml
+@@ -4,7 +4,7 @@
+     <!-- "app_name" is now defined in build.gradle -->
+ 
+     <!-- server urls -->
+-    <string name="matrix_org_server_url" translatable="false">https://matrix.org</string>
++    <string name="matrix_org_server_url" translatable="false">https://10.228.115.221</string>
+ 
+     <!-- Rageshake configuration -->
+     <string name="bug_report_url" translatable="false">https://rageshakes.element.io/api/submit</string>
 diff --git a/vector/src/main/java/im/vector/app/core/platform/VectorBaseActivity.kt b/vector/src/main/java/im/vector/app/core/platform/VectorBaseActivity.kt
 index bf621b6..9b24c95 100644
 --- a/vector/src/main/java/im/vector/app/core/platform/VectorBaseActivity.kt
