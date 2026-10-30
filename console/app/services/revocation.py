@@ -40,10 +40,17 @@ async def revoke_agent(db: AsyncSession, keycloak, synapse,
                         revoque_par=admin.matricule, motif=motif)
 
     # 3a. Keycloak : désactiver le compte PUIS fermer les sessions.
-    if agent.keycloak_id:
-        await keycloak.disable_user(agent.keycloak_id)
+    #     L'identifiant Keycloak est récupéré par matricule s'il n'est pas
+    #     stocké (cas des comptes de démo pré-peuplés).
+    keycloak_user_id = agent.keycloak_id
+    if not keycloak_user_id:
+        kc_user = await keycloak.get_user_by_username(agent.matricule)
+        keycloak_user_id = kc_user["id"] if kc_user else None
+
+    if keycloak_user_id:
+        await keycloak.disable_user(keycloak_user_id)
         log.keycloak_disabled = True
-        await keycloak.logout_user(agent.keycloak_id)
+        await keycloak.logout_user(keycloak_user_id)
         log.keycloak_sessions_closed = True
 
     # 3b. Synapse : désactiver le compte (erase=false, on garde l'historique).

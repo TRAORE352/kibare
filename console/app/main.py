@@ -17,6 +17,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.config import settings
 from app.database import init_db, get_db
+from app.services.seed import seed_demo_agents
 from app.keycloak_client import KeycloakAdminClient
 from app.synapse_client import SynapseAdminClient
 from app.models import Agent, AgentRole, AgentStatus
@@ -27,6 +28,8 @@ from app.routers import health, agents, activation, revocation, directory, journ
 async def lifespan(app: FastAPI):
     """Au démarrage : crée les tables et initialise les clients admin."""
     await init_db()
+    # Peuple la table agents avec les comptes de démo (sinon boucle de redirection).
+    await seed_demo_agents()
     app.state.keycloak = KeycloakAdminClient()
     app.state.synapse = SynapseAdminClient()
     await app.state.keycloak.__aenter__()
