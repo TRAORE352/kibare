@@ -1,0 +1,185 @@
+diff --git a/matrix-sdk-android/src/main/res/raw/kibare_ca.pem b/matrix-sdk-android/src/main/res/raw/kibare_ca.pem
+new file mode 100644
+index 0000000..ad60bc0
+--- /dev/null
++++ b/matrix-sdk-android/src/main/res/raw/kibare_ca.pem
+@@ -0,0 +1,32 @@
++-----BEGIN CERTIFICATE-----
++MIIFezCCA2OgAwIBAgIUd+FY6uIRlYr0bB32qzr2Zxdw2LIwDQYJKoZIhvcNAQEL
++BQAwTTEfMB0GA1UEAwwWS2liYXLDg8KpIENBIChEw4PCiU1PKTESMBAGA1UECgwJ
++S2liYXLDg8KpMRYwFAYDVQQLDA1IYWNrYXRob24gMjI2MB4XDTI2MTAzMDA5NDY1
++OVoXDTM2MTAyNzA5NDY1OVowTTEfMB0GA1UEAwwWS2liYXLDg8KpIENBIChEw4PC
++iU1PKTESMBAGA1UECgwJS2liYXLDg8KpMRYwFAYDVQQLDA1IYWNrYXRob24gMjI2
++MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA1Rz2OOepqq5KjcS564er
++/gkWdR1FD+QHwfUJYYgps/T5ucnPdTuj6q+yGd0qPmk++wUAAs+UvBF7i07VSgjB
++eCWxgZgVKIGrw/WVANgQECDsDDwu1ZDfcaP6z03vz5v24k4Kkk60YU2p1eiw8qjz
++UQXvofVyg7oSRMv5Qehi0OLBAq46BtPVROW9qNjvTSMY5FD/r0yErZ4CS7oqQKUM
++d/KPiSyzFIDSfaq3cGgmaLUa5BvrculnS5vsdFVVFlhsJT9OhMhLyoIkWIxGL9E8
++npHNYCtdGL52ZU07YyTYLMieiYqHApPaeNsNj+bb/2nZuyk4fY1uAsVAoLRo8FZT
++mdtuq6n4///x+4urWFQucEzm7FnHIURh/On7+qFDgMZloHp0CyZCrtgLOzdR+ul0
++HGekcv/0dvMqO/1LksVMfyKTT28Amrccc+6Zr99pyWNqfUkVFZv66HlZS26Wl/r/
++NKqKzjWXZEJddsqZDVEZrqu4IEwzlXTto9S/l+O+OD1HL5iD/XaMGP3/5cJ7rqWk
++cR8x+bBiTzl/e3dsZz7JhigHMkF4KHKLXvo2todgFyJxnQxA0UlRLylQXSmhEXDV
++FlnVS1OSiTaXRFKDxZ6vTlRfggdUhAc7iY7xtainjAvT/lg9GEHJTZsSeiNpapri
++Sm9X1mcPYCwxH918ZUVscUECAwEAAaNTMFEwHQYDVR0OBBYEFDIhLXPcrhI5rJrg
++bLFTWga7oHCOMB8GA1UdIwQYMBaAFDIhLXPcrhI5rJrgbLFTWga7oHCOMA8GA1Ud
++EwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggIBAMtzCmOtUG8tv/EmnJiVIt8Z
++ES+L/es5aKvjRz6MK2wZ2AqbT8vDhkA9PVbCfpDlN4nxwn8sbp60ftZBt+gWMIZR
++3Dzhk4CtbwL0jCfMpd5AWSInZPmn670wWZR8hqQCJcDS3P0Xhrt2m2wswY94JO8y
++uXKeuRcpOtM2FbL06oTD3LbTcrDYuktf/GU2sKHz+cOcOxO+xvr3+4HCJFUBKRdN
++emdhj00ql5ZDomN3hYrAfas7HduM0mZkOq/2Du4VSJft6JloW39aJx56kDXNfAPd
++Zy//PMQDXYM+nbCCxO5b9/dBNjg77qE6qbp5gC5yvo2Dh5If42nFwfjJt4q+VAfp
++JhoBpK5rUhE32HSzhZRShe+XVO8f+zoKuUkSx7nBMH1NjTP4yO+pgyN2jUQPKlKJ
++mvEujB80Ths9pVZV44CytqMhovuFsHJ3LxfjkGYtiLtrQ2PjXQnKvObJwDU8TDQC
++Cae1DlnoWA6rLeLncNuu1R6oupicXdTtt/N4wL4b1HHEpI+jdsGo4145L+l8Q7hO
++8So7Hi1XvoPB6XMAgWKD/MkSMpmKH5JbrkfMlyXy35L5iGpEj0/h1udsXQ9SATeF
++Zh9pgW6rJjZeWEj6IXDbqkZj2wRov/RGANPUyVnmOtOP9wcWOWvwGGY8UAX5ecz+
++hG/tDuxuDxExWwkO9fEQ
++-----END CERTIFICATE-----
+diff --git a/matrix-sdk-android/src/main/res/xml/network_security_config.xml b/matrix-sdk-android/src/main/res/xml/network_security_config.xml
+index e40c61c..09300ac 100644
+--- a/matrix-sdk-android/src/main/res/xml/network_security_config.xml
++++ b/matrix-sdk-android/src/main/res/xml/network_security_config.xml
+@@ -1,16 +1,21 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <network-security-config>
+-    <!-- Ref: https://developer.android.com/training/articles/security-config.html -->
+-    <!-- By default, do not allow clearText traffic -->
+-    <base-config cleartextTrafficPermitted="false" />
++    <!--
++        Kibaré : l'application ne parle QU'AU serveur Kibaré (aucun autre service).
++        On ne fait donc confiance QU'À la CA locale « Kibaré CA » (section 5.7 du
++        brief) : le certificat serveur, signé par cette CA, est accepté, et aucun
++        autre certificat (autorité publique) ne l'est.
++    -->
++    <base-config cleartextTrafficPermitted="false">
++        <trust-anchors>
++            <certificates src="@raw/kibare_ca" />
++        </trust-anchors>
++    </base-config>
+ 
+-    <!-- Allow clearText traffic on some specified host -->
++    <!-- Trafic en clair autorisé uniquement pour le développement local. -->
+     <domain-config cleartextTrafficPermitted="true">
+-        <!-- Localhost -->
+         <domain includeSubdomains="true">localhost</domain>
+         <domain includeSubdomains="true">127.0.0.1</domain>
+-        <!-- Localhost for Android emulator -->
+         <domain includeSubdomains="true">10.0.2.2</domain>
+     </domain-config>
+-
+ </network-security-config>
+diff --git a/vector-app/build.gradle b/vector-app/build.gradle
+index e5be259..c007e2d 100644
+--- a/vector-app/build.gradle
++++ b/vector-app/build.gradle
+@@ -143,7 +143,7 @@ android {
+     compileSdk versions.compileSdk
+ 
+     defaultConfig {
+-        applicationId "im.vector.app"
++        applicationId "org.kibare.app"
+         // Set to API 21: see #405
+         minSdk versions.minSdk
+         targetSdk versions.targetSdk
+@@ -247,7 +247,7 @@ android {
+         debug {
+             applicationIdSuffix ".debug"
+             signingConfig signingConfigs.debug
+-            resValue "string", "app_name", "Element Classic - dbg"
++            resValue "string", "app_name", "Kibaré - dbg"
+ 
+             if (project.hasProperty("coverage")) {
+                 testCoverageEnabled = project.coverage == "true"
+@@ -255,7 +255,7 @@ android {
+         }
+ 
+         release {
+-            resValue "string", "app_name", "Element Classic"
++            resValue "string", "app_name", "Kibaré"
+             postprocessing {
+                 // FIXME Set to true.
+                 removeUnusedCode false
+diff --git a/vector-config/src/main/java/im/vector/app/config/Config.kt b/vector-config/src/main/java/im/vector/app/config/Config.kt
+index 3921733..5f120e2 100644
+--- a/vector-config/src/main/java/im/vector/app/config/Config.kt
++++ b/vector-config/src/main/java/im/vector/app/config/Config.kt
+@@ -28,7 +28,7 @@ object Config {
+      * - Changing the value from `false` to `true` will let the user be able to select an external UnifiedPush distributor;
+      * - Changing the value from `true` to `false` will force the app to return to the background sync / Firebase Push.
+      */
+-    const val ALLOW_EXTERNAL_UNIFIED_PUSH_DISTRIBUTORS = true
++    const val ALLOW_EXTERNAL_UNIFIED_PUSH_DISTRIBUTORS = false
+ 
+     const val ENABLE_LOCATION_SHARING = true
+     const val LOCATION_MAP_TILER_KEY = "fU3vlMsMn4Jb6dnEIFsx"
+diff --git a/vector/src/main/java/im/vector/app/core/platform/VectorBaseActivity.kt b/vector/src/main/java/im/vector/app/core/platform/VectorBaseActivity.kt
+index bf621b6..9b24c95 100644
+--- a/vector/src/main/java/im/vector/app/core/platform/VectorBaseActivity.kt
++++ b/vector/src/main/java/im/vector/app/core/platform/VectorBaseActivity.kt
+@@ -231,10 +231,10 @@ abstract class VectorBaseActivity<VB : ViewBinding> : AppCompatActivity(), Maver
+             handleGlobalError(it)
+         }
+ 
+-        // Set flag FLAG_SECURE
+-        if (vectorPreferences.useFlagSecure()) {
+-            window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+-        }
++        // Blocage des captures d'écran TOUJOURS actif (protection « Zéro fuite »).
++        // Sans condition : le drapeau FLAG_SECURE est appliqué à TOUTES les
++        // activités, même si le réglage utilisateur est désactivé.
++        window.addFlags(WindowManager.LayoutParams.FLAG_SECURE)
+ 
+         doBeforeSetContentView()
+ 
+diff --git a/vector/src/main/java/im/vector/app/features/home/room/detail/timeline/action/MessageActionsViewModel.kt b/vector/src/main/java/im/vector/app/features/home/room/detail/timeline/action/MessageActionsViewModel.kt
+index 2280a26..149e6d5 100644
+--- a/vector/src/main/java/im/vector/app/features/home/room/detail/timeline/action/MessageActionsViewModel.kt
++++ b/vector/src/main/java/im/vector/app/features/home/room/detail/timeline/action/MessageActionsViewModel.kt
+@@ -297,7 +297,8 @@ class MessageActionsViewModel @AssistedInject constructor(
+             add(EventSharedAction.Copy(messageContent!!.body))
+         }
+         if (vectorPreferences.developerMode()) {
+-            addViewSourceItems(timelineEvent)
++            // KIBARÉ : « Voir la source » retiré (affichait le contenu brut).
++            // addViewSourceItems(timelineEvent)
+         }
+     }
+ 
+@@ -349,8 +350,8 @@ class MessageActionsViewModel @AssistedInject constructor(
+             }
+ 
+             if (canCopy(msgType)) {
+-                // TODO copy images? html? see ClipBoard
+-                add(EventSharedAction.Copy(messageContent!!.body))
++                // KIBARÉ : copie interdite (protection « Zéro fuite »).
++                // add(EventSharedAction.Copy(messageContent!!.body))
+             }
+ 
+             if (timelineEvent.canReact() && actionPermissions.canReact) {
+@@ -366,11 +367,13 @@ class MessageActionsViewModel @AssistedInject constructor(
+             }
+ 
+             if (canSave(msgType) && messageContent is MessageWithAttachmentContent) {
+-                add(EventSharedAction.Save(timelineEvent.eventId, messageContent))
++                // KIBARÉ : enregistrement/téléchargement interdit (consultation interne).
++                // add(EventSharedAction.Save(timelineEvent.eventId, messageContent))
+             }
+ 
+             if (canShare(msgType)) {
+-                add(EventSharedAction.Share(timelineEvent.eventId, messageContent!!))
++                // KIBARÉ : partage externe interdit.
++                // add(EventSharedAction.Share(timelineEvent.eventId, messageContent!!))
+             }
+ 
+             if (canRedact(timelineEvent, actionPermissions)) {
+@@ -410,7 +413,8 @@ class MessageActionsViewModel @AssistedInject constructor(
+                     add(EventSharedAction.ReRequestKey(timelineEvent.eventId))
+                 }
+             }
+-            addViewSourceItems(timelineEvent)
++            // KIBARÉ : « Voir la source » retiré (affichait le contenu brut).
++            // addViewSourceItems(timelineEvent)
+         }
+         add(EventSharedAction.CopyPermalink(eventId))
+         if (session.myUserId != timelineEvent.root.senderId) {
