@@ -8,6 +8,8 @@ signé (app/session.py). Accès réservé aux rôles super-admin et admin-minist
 """
 from contextlib import asynccontextmanager
 from urllib.parse import quote
+import base64
+import json
 
 import httpx
 from fastapi import FastAPI, Depends, Request
@@ -72,11 +74,23 @@ async def login():
     return RedirectResponse(url=auth_url)
 
 
+def _decode_jwt_payload(jwt_token: str) -> dict:
+    """Décode le payload d'un JWT (sans vérifier la signature).
+
+    Utilisé pour lire le `preferred_username` de l'id_token renvoyé par Keycloak
+    lors de l'échange de code. Le token provient d'un échange serveur-à-serveur
+    de confiance (Keycloak, sur le réseau interne).
+    """
+    payload = jwt_token.split(".")[1]
+    payload += "=" * (-len(payload) % 4)
+    return json.loads(base64.urlsafe_b64decode(payload))
+
+
 @app.get("/console/callback")
 async def oidc_callback(code: str = None, db: AsyncSession = Depends(get_db)):
     """
     Retour de Keycloak : échange le code d'autorisation contre des jetons,
-    récupère le matricule (preferred_username) via userinfo, vérifie le rôle,
+    lit le matricule (preferred_username) depuis l'id_token, vérifie le rôle,
     puis ouvre la session (cookie signé).
     """
     if not code:
@@ -85,8 +99,6 @@ async def oidc_callback(code: str = None, db: AsyncSession = Depends(get_db)):
     redirect_uri = f"{settings.SERVER_ADDRESS}/console/callback"
     token_url = (f"{settings.KEYCLOAK_INTERNAL_URL}/realms/"
                  f"{settings.KEYCLOAK_REALM}/protocol/openid-connect/token")
-    userinfo_url = (f"{settings.KEYCLOAK_INTERNAL_URL}/realms/"
-                    f"{settings.KEYCLOAK_REALM}/protocol/openid-connect/userinfo")
 
     try:
         async with httpx.AsyncClient(timeout=30.0) as client:
@@ -100,21 +112,22 @@ async def oidc_callback(code: str = None, db: AsyncSession = Depends(get_db)):
             })
             r.raise_for_status()
             tokens = r.json()
-
-            # Récupère le profil utilisateur (Keycloak valide le jeton lui-même).
-            u = await client.get(userinfo_url, headers={
-                "Authorization": f"Bearer {tokens['access_token']}",
-            })
-            u.raise_for_status()
-            userinfo = u.json()
     except Exception as exc:
-        # Journalise l'erreur pour diagnostic (jamais de secret ni de contenu).
         import traceback
-        print("OIDC CALLBACK ERROR:", repr(exc))
+        print("OIDC TOKEN ERROR:", repr(exc))
         traceback.print_exc()
         return RedirectResponse(url="/console/login")
 
-    matricule = userinfo.get("preferred_username")
+    # Matricule = preferred_username de l'id_token (le jeton d'identité contient
+    # déjà les claims : nom, matricule, e-mail — pas besoin d'appeler userinfo).
+    matricule = None
+    id_token = tokens.get("id_token")
+    if id_token:
+        try:
+            matricule = _decode_jwt_payload(id_token).get("preferred_username")
+        except Exception:
+            matricule = None
+
     if not matricule:
         return RedirectResponse(url="/console/login")
 
