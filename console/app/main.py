@@ -72,6 +72,12 @@ app.include_router(directory.router)
 app.include_router(journal.router)
 
 
+@app.get("/console/")
+async def console_root():
+    """Racine de la console : redirige vers la connexion OIDC (Keycloak)."""
+    return RedirectResponse(url="/console/login")
+
+
 @app.get("/console/login")
 async def login(request: Request):
     """Redirige vers Keycloak pour l'authentification OIDC."""
