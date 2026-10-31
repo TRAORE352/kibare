@@ -54,7 +54,7 @@ docker compose up -d   # Démarre toute la plateforme
 
 Puis sur un téléphone Android :
 1. Installer le certificat CA (`caddy/kibare-ca.crt`) : Paramètres → Sécurité → Installer un certificat.
-2. Installer l'APK Kibaré (variante F-Droid, fournie dans `android/` ou téléchargeable via lien d'activation).
+2. Installer l'APK Kibaré (variante F-Droid, téléchargeable via le lien d'activation émis par la Console). Pour construire l'APK soi-même : voir `docs/ANDROID_FORK.md` et appliquer `docs/android-fork.patch` sur un clone d'Element Android (Element Classic).
 3. Ouvrir l'app, se connecter via SSO Keycloak (matricule + mot de passe + code OTP FreeOTP/Aegis).
 
 ## Comptes de démo
