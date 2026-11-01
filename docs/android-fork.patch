@@ -5798,6 +5798,30 @@ index 70f5227..966473a 100644
 +    <string name="threads_learn_more_url" translatable="false"></string>
 +    <string name="ftue_ems_url"></string>
 +</resources>
+diff --git a/vector/src/main/AndroidManifest.xml b/vector/src/main/AndroidManifest.xml
+index b035f86..1c4bdbc 100644
+--- a/vector/src/main/AndroidManifest.xml
++++ b/vector/src/main/AndroidManifest.xml
+@@ -106,6 +106,19 @@
+ 
+         <activity android:name=".features.home.HomeActivity" />
+ 
++        <!--
++            KIBARÉ : écran de connexion SSO interne à l'application.
++
++            Remplace l'ouverture du navigateur du téléphone, qui ne connaît
++            pas l'autorité de certification de l'État et affichait une page
++            blanche. « exported=false » : seule l'application peut l'ouvrir.
++        -->
++        <activity
++            android:name=".features.kibare.KibareSsoWebActivity"
++            android:exported="false"
++            android:label="@string/kibare_sso_titre"
++            android:windowSoftInputMode="adjustResize" />
++
+         <activity
+             android:name=".features.login.SSORedirectRouterActivity"
+             android:exported="true"
 diff --git a/vector/src/main/java/im/vector/app/core/platform/VectorBaseActivity.kt b/vector/src/main/java/im/vector/app/core/platform/VectorBaseActivity.kt
 index bf621b6..9b24c95 100644
 --- a/vector/src/main/java/im/vector/app/core/platform/VectorBaseActivity.kt
@@ -6095,6 +6119,260 @@ index 2280a26..149e6d5 100644
          }
          add(EventSharedAction.CopyPermalink(eventId))
          if (session.myUserId != timelineEvent.root.senderId) {
+diff --git a/vector/src/main/java/im/vector/app/features/kibare/KibareSsoWebActivity.kt b/vector/src/main/java/im/vector/app/features/kibare/KibareSsoWebActivity.kt
+new file mode 100644
+index 0000000..404c07e
+--- /dev/null
++++ b/vector/src/main/java/im/vector/app/features/kibare/KibareSsoWebActivity.kt
+@@ -0,0 +1,223 @@
++/*
++ * Kibaré — connexion SSO à l'intérieur de l'application.
++ *
++ * POURQUOI CE FICHIER EXISTE
++ *
++ * Element ouvre l'écran de connexion SSO dans un « onglet personnalisé »
++ * Chrome, c'est-à-dire dans le navigateur du téléphone. Or le navigateur est
++ * une autre application : il ne connaît pas l'autorité de certification de
++ * l'État burkinabè embarquée dans Kibaré. Face au certificat du serveur de
++ * l'administration, il refuse silencieusement la connexion — l'agent voit une
++ * PAGE BLANCHE, sans message d'erreur.
++ *
++ * La connexion se fait donc désormais dans une vue web interne à
++ * l'application, qui valide le certificat du serveur contre l'autorité de
++ * l'État. Deux bénéfices au-delà de la correction du défaut :
++ *
++ *   — la page de connexion ne quitte jamais l'application : le mot de passe et
++ *     le code à usage unique de l'agent ne transitent pas par un navigateur
++ *     tiers, qui pourrait les enregistrer ou les synchroniser vers un service
++ *     en ligne ;
++ *   — l'application refuse tout serveur dont le certificat n'est pas délivré
++ *     par l'autorité de l'État, y compris un serveur muni d'un certificat
++ *     acheté dans le commerce.
++ */
++
++package im.vector.app.features.kibare
++
++import android.content.ActivityNotFoundException
++import android.content.Intent
++import android.net.Uri
++import android.net.http.SslError
++import android.os.Build
++import android.os.Bundle
++import android.view.ViewGroup
++import android.webkit.SslErrorHandler
++import android.webkit.WebResourceRequest
++import android.webkit.WebView
++import android.webkit.WebViewClient
++import android.widget.Toast
++import androidx.appcompat.app.AppCompatActivity
++import im.vector.app.R
++import java.security.cert.CertificateFactory
++import java.security.cert.X509Certificate
++
++class KibareSsoWebActivity : AppCompatActivity() {
++
++    private var webView: WebView? = null
++
++    override fun onCreate(savedInstanceState: Bundle?) {
++        super.onCreate(savedInstanceState)
++
++        val url = intent.getStringExtra(EXTRA_SSO_URL)
++        if (url.isNullOrEmpty()) {
++            finish()
++            return
++        }
++
++        val vue = WebView(this)
++        vue.layoutParams = ViewGroup.LayoutParams(
++                ViewGroup.LayoutParams.MATCH_PARENT,
++                ViewGroup.LayoutParams.MATCH_PARENT
++        )
++
++        // Keycloak a besoin de JavaScript et du stockage local pour afficher
++        // le formulaire de connexion et l'étape du code à usage unique.
++        vue.settings.javaScriptEnabled = true
++        vue.settings.domStorageEnabled = true
++
++        vue.webViewClient = ClientKibare()
++        setContentView(vue)
++        webView = vue
++        vue.loadUrl(url)
++    }
++
++    override fun onDestroy() {
++        // Libérer la vue web évite de garder en mémoire la page de connexion,
++        // donc d'éventuels identifiants saisis.
++        webView?.let {
++            it.stopLoading()
++            it.destroy()
++        }
++        webView = null
++        super.onDestroy()
++    }
++
++    private inner class ClientKibare : WebViewClient() {
++
++        /**
++         * Fin du parcours SSO : le serveur renvoie vers « element://connect… ».
++         * Ce lien n'est pas une page web, il est traité par l'application
++         * elle-même (SSORedirectRouterActivity, déclarée dans le manifeste).
++         */
++        override fun shouldOverrideUrlLoading(view: WebView, request: WebResourceRequest): Boolean {
++            val uri = request.url
++            if (uri.scheme == SCHEMA_RETOUR) {
++                try {
++                    startActivity(Intent(Intent.ACTION_VIEW, uri))
++                } catch (erreur: ActivityNotFoundException) {
++                    Toast.makeText(
++                            this@KibareSsoWebActivity,
++                            R.string.kibare_sso_erreur_retour,
++                            Toast.LENGTH_LONG
++                    ).show()
++                }
++                finish()
++                return true
++            }
++            return false
++        }
++
++        /**
++         * Le cœur de la correction.
++         *
++         * Une vue web Android n'applique PAS la configuration réseau de
++         * l'application : elle ne consulte que les autorités préinstallées par
++         * le fabricant du téléphone. Le certificat de l'État lui est donc
++         * inconnu et elle le rejette.
++         *
++         * On valide ici nous-mêmes le certificat présenté, contre l'autorité
++         * de l'État embarquée dans l'application. On n'accepte PAS n'importe
++         * quelle erreur : seule une chaîne signée par cette autorité, non
++         * expirée, et dont le nom correspond au serveur visité, est acceptée.
++         */
++        override fun onReceivedSslError(view: WebView, handler: SslErrorHandler, error: SslError) {
++            val certificat = extraireCertificat(error)
++            val hote = Uri.parse(error.url ?: "").host
++
++            if (certificat != null && hote != null && estDelivreParAutoriteKibare(certificat, hote)) {
++                handler.proceed()
++            } else {
++                handler.cancel()
++                Toast.makeText(
++                        this@KibareSsoWebActivity,
++                        R.string.kibare_sso_erreur_certificat,
++                        Toast.LENGTH_LONG
++                ).show()
++                finish()
++            }
++        }
++    }
++
++    /**
++     * Récupère le certificat réellement présenté par le serveur.
++     * Android l'expose directement depuis la version 10 ; avant, il faut
++     * passer par la sérialisation de SslCertificate.
++     */
++    private fun extraireCertificat(error: SslError): X509Certificate? {
++        val certificatSsl = error.certificate ?: return null
++
++        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
++            return certificatSsl.x509Certificate
++        }
++
++        val paquet = Bundle()
++        android.webkit.SslCertificate.saveState(paquet, certificatSsl)
++        val octets = paquet.getByteArray(CLE_CERTIFICAT) ?: return null
++        return try {
++            CertificateFactory.getInstance("X.509")
++                    .generateCertificate(octets.inputStream()) as X509Certificate
++        } catch (erreur: java.security.cert.CertificateException) {
++            null
++        }
++    }
++
++    /**
++     * Trois conditions, toutes obligatoires :
++     *   1. le certificat est signé par l'autorité de l'État ;
++     *   2. il n'est pas expiré ;
++     *   3. il a bien été délivré pour l'adresse que l'on visite.
++     *
++     * La troisième condition est celle qui empêche un serveur légitime de se
++     * faire passer pour un autre.
++     */
++    private fun estDelivreParAutoriteKibare(certificat: X509Certificate, hote: String): Boolean {
++        val autorite = chargerAutoriteKibare() ?: return false
++
++        return try {
++            certificat.verify(autorite.publicKey)
++            certificat.checkValidity()
++            correspondAHote(certificat, hote)
++        } catch (erreur: java.security.GeneralSecurityException) {
++            false
++        }
++    }
++
++    private fun correspondAHote(certificat: X509Certificate, hote: String): Boolean {
++        val noms = try {
++            certificat.subjectAlternativeNames
++        } catch (erreur: java.security.cert.CertificateParsingException) {
++            null
++        } ?: return false
++
++        for (entree in noms) {
++            val valeur = entree.lastOrNull() as? String ?: continue
++            if (valeur.equals(hote, ignoreCase = true)) {
++                return true
++            }
++        }
++        return false
++    }
++
++    private fun chargerAutoriteKibare(): X509Certificate? {
++        return try {
++            resources.openRawResource(R.raw.kibare_ca).use { flux ->
++                CertificateFactory.getInstance("X.509")
++                        .generateCertificate(flux) as X509Certificate
++            }
++        } catch (erreur: java.security.cert.CertificateException) {
++            null
++        }
++    }
++
++    companion object {
++        private const val EXTRA_SSO_URL = "EXTRA_SSO_URL"
++        private const val SCHEMA_RETOUR = "element"
++        private const val CLE_CERTIFICAT = "x509-certificate"
++
++        fun intent(contexte: android.content.Context, ssoUrl: String): Intent {
++            return Intent(contexte, KibareSsoWebActivity::class.java)
++                    .putExtra(EXTRA_SSO_URL, ssoUrl)
++        }
++    }
++}
+diff --git a/vector/src/main/java/im/vector/app/features/login/AbstractSSOLoginFragment.kt b/vector/src/main/java/im/vector/app/features/login/AbstractSSOLoginFragment.kt
+index e223c4a..563a41a 100644
+--- a/vector/src/main/java/im/vector/app/features/login/AbstractSSOLoginFragment.kt
++++ b/vector/src/main/java/im/vector/app/features/login/AbstractSSOLoginFragment.kt
+@@ -14,7 +14,7 @@ import androidx.browser.customtabs.CustomTabsServiceConnection
+ import androidx.browser.customtabs.CustomTabsSession
+ import androidx.viewbinding.ViewBinding
+ import com.airbnb.mvrx.withState
+-import im.vector.app.core.utils.openUrlInChromeCustomTab
++import im.vector.app.features.kibare.KibareSsoWebActivity
+ import org.matrix.android.sdk.api.auth.SSOAction
+ 
+ abstract class AbstractSSOLoginFragment<VB : ViewBinding> : AbstractLoginFragment<VB>() {
+@@ -72,7 +72,10 @@ abstract class AbstractSSOLoginFragment<VB : ViewBinding> : AbstractLoginFragmen
+     }
+ 
+     fun openInCustomTab(ssoUrl: String) {
+-        openUrlInChromeCustomTab(requireContext(), customTabsSession, ssoUrl)
++        // KIBARÉ : voir AbstractSSOFtueAuthFragment — la page de connexion
++        // reste dans l'application, le navigateur du téléphone ne connaissant
++        // pas l'autorité de certification de l'État.
++        startActivity(KibareSsoWebActivity.intent(requireContext(), ssoUrl))
+     }
+ 
+     private fun prefetchIfNeeded() {
 diff --git a/vector/src/main/java/im/vector/app/features/media/BigImageViewerActivity.kt b/vector/src/main/java/im/vector/app/features/media/BigImageViewerActivity.kt
 index 57d631b..4f0b76c 100644
 --- a/vector/src/main/java/im/vector/app/features/media/BigImageViewerActivity.kt
@@ -6302,6 +6580,40 @@ index d81d55d..71016cc 100644
          }
      }
  
+diff --git a/vector/src/main/java/im/vector/app/features/onboarding/ftueauth/AbstractSSOFtueAuthFragment.kt b/vector/src/main/java/im/vector/app/features/onboarding/ftueauth/AbstractSSOFtueAuthFragment.kt
+index c7a72af..7306df1 100644
+--- a/vector/src/main/java/im/vector/app/features/onboarding/ftueauth/AbstractSSOFtueAuthFragment.kt
++++ b/vector/src/main/java/im/vector/app/features/onboarding/ftueauth/AbstractSSOFtueAuthFragment.kt
+@@ -14,7 +14,7 @@ import androidx.browser.customtabs.CustomTabsServiceConnection
+ import androidx.browser.customtabs.CustomTabsSession
+ import androidx.viewbinding.ViewBinding
+ import com.airbnb.mvrx.withState
+-import im.vector.app.core.utils.openUrlInChromeCustomTab
++import im.vector.app.features.kibare.KibareSsoWebActivity
+ import im.vector.app.features.login.SSORedirectRouterActivity
+ import im.vector.app.features.login.hasSso
+ import im.vector.app.features.login.ssoState
+@@ -76,7 +76,19 @@ abstract class AbstractSSOFtueAuthFragment<VB : ViewBinding> : AbstractFtueAuthF
+     }
+ 
+     fun openInCustomTab(ssoUrl: String) {
+-        openUrlInChromeCustomTab(requireContext(), customTabsSession, ssoUrl)
++        // KIBARÉ : la connexion SSO reste DANS l'application.
++        //
++        // Element ouvrait cette page dans le navigateur du téléphone. Le
++        // navigateur est une autre application : il ne connaît pas l'autorité
++        // de certification de l'État embarquée dans Kibaré, rejette le
++        // certificat du serveur de l'administration, et l'agent ne voit
++        // qu'une page blanche sans explication.
++        //
++        // KibareSsoWebActivity affiche la page dans l'application et valide
++        // elle-même le certificat contre l'autorité de l'État. Le mot de passe
++        // et le code à usage unique de l'agent ne transitent donc plus par un
++        // navigateur tiers.
++        startActivity(KibareSsoWebActivity.intent(requireContext(), ssoUrl))
+     }
+ 
+     private fun prefetchIfNeeded() {
 diff --git a/vector/src/main/java/im/vector/app/features/roomdirectory/createroom/CreateRoomController.kt b/vector/src/main/java/im/vector/app/features/roomdirectory/createroom/CreateRoomController.kt
 index fe805b7..4495952 100644
 --- a/vector/src/main/java/im/vector/app/features/roomdirectory/createroom/CreateRoomController.kt
@@ -6645,6 +6957,33 @@ index 0000000..ad60bc0
 +Zh9pgW6rJjZeWEj6IXDbqkZj2wRov/RGANPUyVnmOtOP9wcWOWvwGGY8UAX5ecz+
 +hG/tDuxuDxExWwkO9fEQ
 +-----END CERTIFICATE-----
+diff --git a/vector/src/main/res/values/strings_kibare.xml b/vector/src/main/res/values/strings_kibare.xml
+new file mode 100644
+index 0000000..9a56509
+--- /dev/null
++++ b/vector/src/main/res/values/strings_kibare.xml
+@@ -0,0 +1,21 @@
++<?xml version="1.0" encoding="utf-8"?>
++<!--
++    Kibaré — messages propres à notre fork.
++
++    Placés dans un fichier distinct de ceux d'Element pour qu'une mise à jour
++    du projet amont ne les écrase pas.
++-->
++<resources>
++
++    <!-- Titre de la barre de l'écran de connexion. -->
++    <string name="kibare_sso_titre">Connexion Kibaré</string>
++
++    <!-- Affiché si le certificat du serveur n'est pas délivré par l'autorité
++         de l'État : l'application refuse alors la connexion. -->
++    <string name="kibare_sso_erreur_certificat">Connexion refusée : ce serveur ne présente pas un certificat de l\'administration burkinabè.</string>
++
++    <!-- Cas théorique : le retour de connexion ne trouve pas l'application.
++         Ne devrait jamais survenir, l'application déclarant elle-même ce lien. -->
++    <string name="kibare_sso_erreur_retour">Impossible de terminer la connexion. Fermez puis rouvrez l\'application.</string>
++
++</resources>
 diff --git a/vector/src/main/res/xml/network_security_config.xml b/vector/src/main/res/xml/network_security_config.xml
 index b9f3d03..6fe1c1a 100644
 --- a/vector/src/main/res/xml/network_security_config.xml
