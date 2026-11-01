@@ -108,8 +108,35 @@ jobs:
           distribution: temurin
           java-version: "21"
 
-      - name: Installer le SDK Android
-        uses: android-actions/setup-android@v3
+      # Le SDK Android est DÉJÀ installé sur les machines GitHub (ANDROID_HOME
+      # est défini). On ne passe donc pas par l'action setup-android : dans sa
+      # version actuelle elle tente d'installer le paquet « tools », retiré du
+      # dépôt Google depuis des années, et échoue sur
+      # « Warning: Failed to find package 'tools' ».
+      - name: Vérifier le SDK Android préinstallé
+        run: |
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          if [ -z "$SDK" ]; then
+            echo "::error::Aucun SDK Android trouvé sur la machine de build."
+            exit 1
+          fi
+          echo "SDK Android : $SDK"
+          echo "Plateformes :"
+          ls "$SDK/platforms" 2>/dev/null || echo "  (aucune — Gradle la téléchargera)"
+          echo "Outils de compilation :"
+          ls "$SDK/build-tools" 2>/dev/null || echo "  (aucun — Gradle les téléchargera)"
+          echo "ANDROID_HOME=$SDK" >> "$GITHUB_ENV"
+          echo "ANDROID_SDK_ROOT=$SDK" >> "$GITHUB_ENV"
+
+      - name: Accepter les licences du SDK
+        run: |
+          SDK="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
+          for m in "$SDK/cmdline-tools/latest/bin/sdkmanager" \
+                   "$SDK/cmdline-tools/16.0/bin/sdkmanager" \
+                   "$SDK/tools/bin/sdkmanager"; do
+            if [ -x "$m" ]; then yes | "$m" --licenses >/dev/null 2>&1 || true; break; fi
+          done
+          echo "Licences acceptées (ou déjà acceptées)."
 
       - name: Préparer Gradle (avec cache)
         uses: gradle/actions/setup-gradle@v4
