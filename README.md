@@ -53,28 +53,44 @@ docker compose up -d   # Démarre toute la plateforme
 ```
 
 Puis sur un téléphone Android :
-1. Installer le certificat CA (`caddy/kibare-ca.crt`) : Paramètres → Sécurité → Installer un certificat.
-2. Installer l'APK Kibaré (variante F-Droid, téléchargeable via le lien d'activation émis par la Console).
-3. Ouvrir l'app, se connecter via SSO Keycloak (matricule + mot de passe + code OTP FreeOTP/Aegis).
+1. Installer l'APK Kibaré ([page de téléchargement](../../releases/latest)).
+   Le certificat de l'autorité Kibaré est **embarqué dans l'application** :
+   rien d'autre à installer, aucun avertissement de sécurité à accepter.
+2. Ouvrir l'app, se connecter via SSO Keycloak (matricule + mot de passe + code OTP FreeOTP/Aegis).
 
 ## Télécharger l'APK déjà compilé (le plus simple)
 
-Le dépôt compile l'application automatiquement. Pour obtenir l'APK sans rien
-installer :
+**[Page de téléchargement →](../../releases/latest)** — téléchargement direct,
+sans compte GitHub.
 
-1. Ouvrir l'onglet **[Actions](../../actions)** du dépôt.
-2. Cliquer sur la dernière exécution verte d'« APK Kibaré ».
-3. En bas de la page, télécharger l'artefact **kibare-apk-debug**.
-4. L'archive contient deux fichiers, un par type de processeur :
+Deux fichiers, un par type de processeur. **Un seul s'installe sur un
+téléphone donné** ; si le premier est refusé, prendre le second.
 
 | Fichier | Pour quel téléphone |
 |---|---|
-| `vector-fdroid-arm64-v8a-debug.apk` | tout téléphone vendu depuis 2016 — **choisir celui-ci par défaut** |
-| `vector-fdroid-armeabi-v7a-debug.apk` | appareils d'entrée de gamme plus anciens (32 bits) |
+| `kibare-arm64-v8a.apk` | tout téléphone vendu depuis 2016 — **à choisir par défaut** |
+| `kibare-armeabi-v7a.apk` | appareils d'entrée de gamme plus anciens (32 bits) |
 
-Un seul des deux s'installe sur un téléphone donné ; si le premier est refusé,
-prendre le second. L'APK est signé avec la clé de test d'Element, il s'installe
-donc directement (« Autoriser cette source » à la première installation).
+L'APK est signé avec la clé de test d'Element : il s'installe directement,
+après avoir autorisé l'installation depuis cette source. **Le certificat de
+l'autorité Kibaré est dans l'application** — aucune manipulation dans les
+paramètres Android n'est nécessaire.
+
+### Pourquoi le certificat est embarqué, et non installé à la main
+
+Kibaré n'utilise aucune autorité de certification étrangère : le serveur de
+l'administration présente un certificat délivré par l'autorité de l'État.
+Un téléphone ne connaît pas cette autorité d'origine.
+
+Deux solutions existaient. L'installation manuelle du certificat dans Android
+affiche un avertissement, exige six manipulations dans les paramètres, et
+l'agent peut la défaire par erreur. L'autre solution — celle retenue — place
+l'autorité dans l'application, qui n'accepte **qu'elle** et refuse les
+autorités publiques préinstallées par Google.
+
+Le résultat est à la fois plus simple et plus sûr : un seul geste pour
+l'agent, et un serveur usurpé muni d'un certificat acheté dans le commerce
+est rejeté par l'application.
 
 ## Compiler l'APK en local (sans aucun service en ligne)
 
