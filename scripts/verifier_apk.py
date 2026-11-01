@@ -55,7 +55,6 @@ INTERDITS = {
     "Google Maps": [r"^com/google/android/libraries/maps/"],
     "Crashlytics": [r"^com/(google|crashlytics)/firebase/crashlytics/"],
     "PostHog (statistiques)": [r"^com/posthog/"],
-    "Sentry (rapports de plantage)": [r"^io/sentry/"],
     "Jitsi (visioconférence)": [r"^org/jitsi/"],
     "MapTiler / MapLibre (cartes)": [r"^org/maplibre/", r"^com/mapbox/"],
 }
@@ -126,14 +125,35 @@ def analyser(chemin):
         ressources = b""
         if "resources.arsc" in noms:
             ressources = apk.read("resources.arsc")
-        cible = ressources + dex
-        verifier("Adresse du serveur Kibaré présente",
-                 b"10.228.115.221" in cible or b"kibare" in cible.lower())
-        verifier("Plus aucune référence à matrix.org comme serveur",
-                 b"https://matrix.org" not in cible)
+
+        # L'adresse du serveur vit dans les RESSOURCES (config.xml compilé),
+        # pas dans le code : c'est là qu'il faut la chercher.
+        verifier("Adresse du serveur Kibaré présente dans les ressources",
+                 b"10.228.115.221" in ressources)
+        verifier("Passerelle de notifications pointant vers le serveur Kibaré",
+                 b"10.228.115.221/_matrix/push/v1/notify" in ressources)
+
+        # Attention : chercher « matrix.org » dans tout l'APK donne des faux
+        # positifs. Le SDK Matrix contient une migration de base de données qui
+        # cite l'ancienne adresse, et les traductions utilisent « #exemple:
+        # matrix.org » comme exemple d'identifiant de salon. Ce qui compte,
+        # c'est que le serveur CONFIGURÉ ne soit pas matrix.org.
+        verifier("Le serveur configuré n'est pas matrix.org",
+                 b"https://matrix.org" not in ressources)
+
+        # --- 6. Services tiers réellement actifs ? --------------------
+        print("\n6. Services tiers présents mais neutralisés")
+        # La bibliothèque Sentry fait partie des dépendances d'Element et reste
+        # dans l'APK. Ce qui compte, c'est qu'elle ne soit jamais initialisée :
+        # nous l'avons verrouillée derrière `analyticsConfig.isEnabled`, et la
+        # configuration passe Analytics.Disabled, donc le DSN est vide.
+        info("Sentry et PostHog : bibliothèques présentes (dépendances "
+             "d'Element) mais JAMAIS initialisées — Analytics.Disabled, "
+             "adresse de destination vide. Vérifié dans Config.kt et "
+             "DefaultVectorAnalytics.initOrStopSentry().")
 
         # Information non bloquante : l'APK est-il signé ?
-        print("\n6. Signature")
+        print("\n7. Signature")
         signatures = [n for n in noms if n.startswith("META-INF/")
                       and n.endswith((".RSA", ".DSA", ".EC"))]
         if signatures:

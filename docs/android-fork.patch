@@ -5807,6 +5807,31 @@ index 6d1b975..b612408 100644
      override fun isOnboardingCombinedLoginEnabled() = true
      override fun allowExternalUnifiedPushDistributors(): Boolean = Config.ALLOW_EXTERNAL_UNIFIED_PUSH_DISTRIBUTORS
      override fun isScreenSharingEnabled(): Boolean = true
+diff --git a/vector/src/main/java/im/vector/app/features/analytics/impl/DefaultVectorAnalytics.kt b/vector/src/main/java/im/vector/app/features/analytics/impl/DefaultVectorAnalytics.kt
+index 5aa235b..6d4bc7c 100644
+--- a/vector/src/main/java/im/vector/app/features/analytics/impl/DefaultVectorAnalytics.kt
++++ b/vector/src/main/java/im/vector/app/features/analytics/impl/DefaultVectorAnalytics.kt
+@@ -131,6 +131,20 @@ class DefaultVectorAnalytics @Inject constructor(
+     }
+ 
+     private fun initOrStopSentry() {
++        // KIBARÉ : Sentry (rapports de plantage vers un serveur tiers) n'est JAMAIS
++        // démarré. Nous ajoutons la condition `analyticsConfig.isEnabled`, absente
++        // d'Element : sans elle, un agent qui accepterait la collecte de
++        // statistiques déclencherait l'initialisation de Sentry, alors que les
++        // statistiques sont désactivées au niveau de la configuration
++        // (Config.kt : Analytics.Disabled, section 5.6 du brief).
++        //
++        // La bibliothèque reste présente dans l'APK car elle fait partie des
++        // dépendances d'Element, mais elle n'est jamais initialisée et son
++        // adresse de destination (DSN) est vide : aucune donnée ne peut sortir.
++        if (!analyticsConfig.isEnabled) {
++            sentryAnalytics.stopSentry()
++            return
++        }
+         userConsent?.let {
+             when (it) {
+                 true -> sentryAnalytics.initSentry()
 diff --git a/vector/src/main/java/im/vector/app/features/home/room/detail/TimelineFragment.kt b/vector/src/main/java/im/vector/app/features/home/room/detail/TimelineFragment.kt
 index 01be29d..d52fb64 100644
 --- a/vector/src/main/java/im/vector/app/features/home/room/detail/TimelineFragment.kt
