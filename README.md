@@ -63,6 +63,13 @@ Puis sur un téléphone Android :
 **[Page de téléchargement →](../../releases/latest)** — téléchargement direct,
 sans compte GitHub.
 
+Liens permanents, valables aussi après publication d'une nouvelle version :
+
+```
+https://github.com/TRAORE352/kibare/releases/latest/download/kibare-arm64-v8a.apk
+https://github.com/TRAORE352/kibare/releases/latest/download/kibare-armeabi-v7a.apk
+```
+
 Deux fichiers, un par type de processeur. **Un seul s'installe sur un
 téléphone donné** ; si le premier est refusé, prendre le second.
 

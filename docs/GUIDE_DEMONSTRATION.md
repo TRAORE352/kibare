@@ -11,14 +11,21 @@ Le PC serveur et les deux téléphones doivent être sur **le même réseau Wi-F
 Un partage de connexion depuis un téléphone fonctionne très bien, et permet même
 de montrer que **rien ne passe par Internet**.
 
-**Relever l'adresse IP du PC serveur** :
+L'adresse IP du PC serveur est détectée automatiquement par `init.sh`, qui vous
+la fait confirmer avant de continuer. Pour la relever vous-même :
 
 ```bash
-ip addr show | grep "inet "        # Linux
+ip route get 1.1.1.1 | grep -oP 'src \K[0-9.]+'   # Linux
+ipconfig                                          # Windows
 ```
 
-Notez l'adresse qui ressemble à `192.168.x.x` ou `10.x.x.x`.
 C'est **l'adresse du serveur** : elle revient partout ensuite.
+
+> **Point de vigilance.** Cette adresse est inscrite dans le certificat du
+> serveur et dans toute la configuration. Si elle est fausse, aucun service ne
+> signale d'erreur : ils démarrent normalement, mais le téléphone reçoit une
+> adresse injoignable et l'écran de connexion reste **blanc**, sans message.
+> C'est pourquoi `init.sh` demande une confirmation explicite.
 
 > Astuce pour la démonstration : une fois tout installé, coupez les données
 > mobiles des téléphones. La messagerie continue de fonctionner — c'est la
@@ -31,16 +38,17 @@ C'est **l'adresse du serveur** : elle revient partout ensuite.
 Sur le PC serveur, dans le dossier du projet :
 
 ```bash
-# 1. Indiquer l'adresse du serveur (remplacez par la vôtre)
-export KIBARE_SERVER_ADDRESS=192.168.1.42
-
-# 2. Générer la CA locale, les certificats et les secrets de démo
+# 1. Générer la CA locale, les certificats et les secrets de démo
+#    L'adresse du serveur est détectée et soumise à confirmation.
 ./scripts/init.sh
 
-# 3. Démarrer toute la plateforme
+#    Pour l'imposer vous-même :
+#    KIBARE_SERVER_ADDRESS=192.168.1.42 ./scripts/init.sh
+
+# 2. Démarrer toute la plateforme
 docker compose up -d
 
-# 4. Vérifier que les cinq services tournent
+# 3. Vérifier que les cinq services tournent
 docker compose ps
 ```
 
@@ -66,43 +74,54 @@ est locale. Cliquez sur « Avancé » puis « Continuer ».)
 
 ---
 
-# Étape 3 — Installer le certificat sur les téléphones
+# Étape 3 — Installer l'application sur les téléphones
 
-**À faire sur les DEUX téléphones.** Sans cette étape, l'application refusera de
-se connecter — c'est voulu : elle ne fait confiance qu'à notre autorité locale.
+**Rien d'autre à installer.** Le certificat de l'autorité Kibaré est embarqué
+dans l'application : aucune manipulation dans les paramètres Android, aucun
+avertissement de sécurité à accepter.
 
-1. Sur le PC, rendez le certificat téléchargeable :
-   ```bash
-   cd caddy && python3 -m http.server 8080
-   ```
-2. Sur le téléphone, ouvrez le navigateur et allez à :
-   `http://<ADRESSE_SERVEUR>:8080/kibare-ca.crt`
-3. Le fichier se télécharge.
-4. Ouvrez **Paramètres → Sécurité → Chiffrement et identifiants →
-   Installer un certificat → Certificat CA**.
-   (le chemin varie un peu selon la marque ; cherchez « certificat » dans la
-   recherche des paramètres)
-5. Un avertissement s'affiche, confirmez. Choisissez le fichier téléchargé.
-6. Nommez-le « Kibaré CA ».
+1. Sur le téléphone, ouvrir le lien de téléchargement :
+   **https://github.com/TRAORE352/kibare/releases/latest**
+2. Prendre `kibare-arm64-v8a.apk` (tout téléphone vendu depuis 2016).
+   Pour un appareil 32 bits plus ancien : `kibare-armeabi-v7a.apk`.
+3. Ouvrir le fichier téléchargé ; Android demande d'autoriser l'installation
+   depuis cette source — accepter.
+4. Ouvrir Kibaré, saisir l'adresse du serveur, puis « Continuer avec
+   l'authentification unique ».
 
-**Vérification** : dans le navigateur du téléphone, allez sur
-`https://<ADRESSE_SERVEUR>/console/`. Si la page s'ouvre **sans avertissement de
-sécurité**, le certificat est bien installé.
+> Si une version précédente de Kibaré est installée, la **désinstaller
+> d'abord** : Android refuse de remplacer une application signée différemment.
+
+**Pourquoi le certificat est dans l'application plutôt qu'installé à la main.**
+Le serveur de l'administration présente un certificat délivré par l'autorité de
+l'État, qu'aucun téléphone ne connaît d'origine. L'installer manuellement
+exigeait six manipulations, affichait un avertissement, et l'agent pouvait la
+défaire par erreur. L'autorité est donc embarquée dans l'application, qui
+n'accepte **qu'elle** et refuse les autorités publiques préinstallées par
+Google : un serveur usurpé muni d'un certificat acheté dans le commerce est
+rejeté.
+
+La page de connexion s'affiche **dans l'application**, jamais dans le navigateur
+du téléphone : le mot de passe et le code à usage unique ne transitent par
+aucune application tierce. Cet écran bloque en outre les captures d'écran.
+
+**Vérification du contenu de l'APK** (20 contrôles) :
+
+```bash
+python3 scripts/verifier_apk.py chemin/vers/kibare-arm64-v8a.apk
+```
 
 ---
 
-# Étape 4 — Installer l'application
+# Étape 4 — Ouvrir la Console d'administration
 
-1. Récupérez le fichier `kibare.apk` (produit par GitHub Actions ou compilé en
-   local, voir le README).
-2. Transférez-le sur chaque téléphone (câble USB, ou en le servant depuis le PC
-   comme au point précédent).
-3. Sur le téléphone, ouvrez le fichier. Android demandera d'autoriser
-   l'installation depuis cette source : acceptez.
-4. L'application **Kibaré** apparaît dans la liste des applications.
+Sur le PC, dans un navigateur : `https://<ADRESSE_SERVEUR>/console/`
 
-> L'APK de démonstration est signé avec la clé de test d'Element. Il s'installe
-> normalement. Pour un déploiement réel, l'État utiliserait sa propre clé.
+Le navigateur affichera un avertissement de certificat — normal, l'autorité est
+locale. Cliquer sur « Avancé » puis « Continuer ». Pour l'éviter, installer
+`caddy/kibare-ca.crt` dans le magasin de certificats du PC.
+
+Identifiants de démonstration : voir `docs/COMPTES_DEMO.md`.
 
 ---
 
@@ -328,3 +347,16 @@ en incrustation. Parlez lentement, phrases courtes.
   `python3 scripts/demo_reset.py`.
 - Si une étape échoue pendant le tournage, **ne la coupez pas au montage sans
   la refaire** : le jury préfère une démonstration honnête.
+
+---
+
+# Annexe — Dépannage
+
+| Symptôme | Cause et correction |
+|---|---|
+| Écran de connexion **blanc** | L'adresse du serveur inscrite dans la configuration ne correspond pas à celle du PC. Vérifier : `docker compose exec synapse grep public_baseurl /data/homeserver.yaml`. Corriger l'adresse dans `synapse/homeserver.yaml` et `keycloak/realm-kibare.json`, puis `docker compose restart synapse keycloak caddy`. |
+| « Connexion refusée : ce serveur ne présente pas un certificat de l'administration » | L'application parle à un serveur dont le certificat n'est pas signé par l'autorité Kibaré. Vérifier l'adresse saisie. |
+| L'APK refuse de s'installer | Mauvaise architecture : prendre l'autre fichier. Ou une version précédente est installée : la désinstaller. |
+| La Console ne répond pas | `docker compose ps` — les cinq services doivent être en état *running*. |
+
+---

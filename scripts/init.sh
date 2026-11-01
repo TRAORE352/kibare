@@ -20,12 +20,73 @@ CADDY_DIR="$REPO_ROOT/caddy"
 SYNAPSE_DIR="$REPO_ROOT/synapse"
 KEYCLOAK_DIR="$REPO_ROOT/keycloak"
 
-# Adresse IP du serveur sur le réseau local (surchargeable par variable d'env)
-KIBARE_SERVER_ADDRESS="${KIBARE_SERVER_ADDRESS:-192.168.10.10}"
-
 log_info() { echo "[INFO] $*"; }
 log_ok()   { echo "[OK]   $*"; }
 log_warn() { echo "[WARN] $*"; }
+log_err()  { echo "[ERR]  $*" >&2; }
+
+# ---------------------------------------------------------------------
+# Adresse IP du serveur sur le réseau local.
+#
+# C'est LA valeur la plus critique de toute l'installation : elle est écrite
+# dans le certificat du serveur, dans public_baseurl de Synapse et dans les
+# adresses de redirection de Keycloak. Une valeur erronée ne provoque aucune
+# erreur au démarrage : les services tournent, mais le téléphone reçoit une
+# adresse injoignable et l'écran de connexion reste BLANC, sans message.
+#
+# Une version précédente de ce script utilisait une adresse d'exemple par
+# défaut (192.168.10.10). Qui oubliait de définir la variable obtenait une
+# plateforme silencieusement inutilisable. On détecte donc l'adresse, on
+# l'affiche, et on exige une confirmation.
+# ---------------------------------------------------------------------
+detecter_adresse() {
+    # Adresse de l'interface qui porte la route par défaut : celle par
+    # laquelle les téléphones du réseau local joindront ce PC.
+    ip route get 1.1.1.1 2>/dev/null | grep -oP 'src \K[0-9.]+' && return 0
+    hostname -I 2>/dev/null | tr ' ' '\n' | grep -v '^127\.' | head -1 && return 0
+    return 1
+}
+
+if [ -n "${KIBARE_SERVER_ADDRESS:-}" ]; then
+    log_info "Adresse fournie par la variable KIBARE_SERVER_ADDRESS."
+else
+    KIBARE_SERVER_ADDRESS="$(detecter_adresse || true)"
+    if [ -z "$KIBARE_SERVER_ADDRESS" ]; then
+        log_err "Impossible de détecter l'adresse IP de ce PC sur le réseau local."
+        log_err "Relancez en l'indiquant vous-même :"
+        log_err "    KIBARE_SERVER_ADDRESS=192.168.1.42 ./scripts/init.sh"
+        exit 1
+    fi
+    log_info "Adresse détectée automatiquement : ${KIBARE_SERVER_ADDRESS}"
+fi
+
+# Contrôle de forme : une IPv4 et rien d'autre.
+if ! echo "$KIBARE_SERVER_ADDRESS" | grep -Eq '^([0-9]{1,3}\.){3}[0-9]{1,3}$'; then
+    log_err "« ${KIBARE_SERVER_ADDRESS} » n'est pas une adresse IPv4 valide."
+    exit 1
+fi
+
+echo
+echo "  ┌──────────────────────────────────────────────────────────┐"
+printf "  │  Adresse du serveur Kibaré : %-27s │\n" "$KIBARE_SERVER_ADDRESS"
+echo "  └──────────────────────────────────────────────────────────┘"
+echo
+echo "  Cette adresse sera inscrite dans le certificat du serveur et dans"
+echo "  toute la configuration. Les téléphones devront l'utiliser telle"
+echo "  quelle. Si elle est fausse, l'écran de connexion restera blanc."
+echo
+if [ -t 0 ] && [ "${KIBARE_CONFIRMATION_AUTO:-0}" != "1" ]; then
+    printf "  Est-elle correcte ? [o/N] "
+    read -r reponse
+    case "$reponse" in
+        o|O|oui|OUI|y|Y|yes) ;;
+        *)
+            log_err "Initialisation annulée. Relancez avec la bonne adresse :"
+            log_err "    KIBARE_SERVER_ADDRESS=<votre-ip> ./scripts/init.sh"
+            exit 1
+            ;;
+    esac
+fi
 
 log_info "=== Initialisation de Kibaré ==="
 log_info "Adresse du serveur : ${KIBARE_SERVER_ADDRESS}"
