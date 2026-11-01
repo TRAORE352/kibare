@@ -147,3 +147,63 @@ Docker), j'ai vérifié la chaîne serveur de bout en bout :
 - l'échange chiffré réel entre deux clients (nécessite un client Matrix E2EE,
   ex. matrix-nio, pour les tests d'intégration) ;
 - le flux de connexion navigateur complet (matricule + mot de passe + OTP).
+
+## Fork Android — lots terminés (1er novembre)
+
+Trois lots de modifications ont été ajoutés au fork (détail dans
+`docs/ANDROID_FORK.md`) :
+
+1. **Liens externes coupés** : partage de position, cartes MapTiler,
+   statistiques PostHog, rapports de plantage Sentry, signalement de bogue
+   « rageshake », annuaire public de salons, Jitsi, passerelles UnifiedPush
+   publiques, liens d'aide element.io, et la publicité pour « Element X ».
+2. **Métadonnées** : accusés de lecture en `m.read.private`, indicateur
+   « en train d'écrire » désactivé, notifications réduites à « Nouveau message »
+   (ni texte, ni expéditeur, ni salon, ni image, ni avatars).
+3. **Chiffrement** : `enableEncryption()` inconditionnel à la création de salon ;
+   l'interrupteur de l'écran de création devient un texte non modifiable.
+
+### Deux défauts trouvés et corrigés dans le livrable précédent
+
+1. **Le patch ne transportait pas ses fichiers binaires.** Il avait été généré
+   sans `--binary` : `git apply` échouait sur les 10 PNG d'icône et les 2
+   polices TTF (`cannot apply binary patch … without full index line`). Qui
+   appliquait le patch sur un clone neuf n'obtenait ni l'icône Kibaré ni IBM
+   Plex Sans. Corrigé : le patch est désormais généré avec
+   `git diff --cached --binary`, et la procédure est écrite dans
+   `docs/ANDROID_FORK.md` (§10).
+2. **Import orphelin dans `TimelineFragment.kt`.** La suppression de
+   « Ouvrir avec… » avait laissé `import …safeStartActivity` inutilisé. Le
+   projet compile avec `allWarningsAsErrors = true` : cet import seul suffisait
+   à casser la compilation. Corrigé.
+
+### Pièges évités pendant ces lots
+
+- **`findPreference(...)!!` sur une préférence supprimée = plantage.** Retirer
+  la catégorie « rageshake » du XML des réglages aurait fait planter l'écran des
+  réglages avancés, car `VectorSettingsAdvancedSettingsFragment` la cherchait
+  avec `!!`. La fonction `setupRageShakeSection()` a donc été vidée en même temps.
+- **L'icône d'Element est vectorielle, pas un PNG.** C'est une « icône
+  adaptative » : remplacer seulement les PNG `mipmap-*` n'aurait rien changé sur
+  Android 8 et plus. C'est `drawable-anydpi-v26/ic_launcher_foreground.xml` qui
+  fait foi ; les PNG ne servent que de repli pour Android 5 à 7.
+- **`allWarningsAsErrors = true`** : tout import ou paramètre de constructeur
+  devenu inutilisé casse la compilation. Après chaque suppression de code, les
+  imports ont été revérifiés automatiquement.
+
+### Contrôles réellement exécutés (sans Docker, sans Android SDK)
+
+- `git apply --check` puis `git apply` du patch sur un **clone neuf**
+  d'element-android : les deux passent sans erreur.
+- Les 2 polices TTF relues après application : « IBM Plex Sans » Regular et Bold
+  reconnues ; les 12 binaires ont la **même empreinte SHA-256** qu'à la source.
+- Les 10 icônes PNG régénérées, contrôlées à l'œil : le « K » est net, centré,
+  non rogné, lisible jusqu'en 48 px.
+- Les 17 fichiers XML modifiés parsent sans erreur.
+- Script de contrôle sur tous les `.kt` modifiés : aucun import inutilisé,
+  accolades équilibrées.
+
+**Limite honnête** : aucune compilation Gradle n'a pu être lancée (ni JDK ni
+Android SDK dans le conteneur de l'agent). Les contrôles ci-dessus sont
+statiques — ils ne remplacent pas un `assembleFdroidRelease` vert, qui reste à
+faire sur la machine de build de l'équipe.
