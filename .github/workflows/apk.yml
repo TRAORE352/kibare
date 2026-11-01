@@ -1,0 +1,156 @@
+#  Compilation de l'APK Kibaré dans le nuage (GitHub Actions).
+#
+#  Pourquoi ce fichier : le dépôt ne contient pas le code d'Element Android,
+#  seulement nos modifications (docs/android-fork.patch). Ce workflow
+#  reconstitue donc le fork à chaque exécution :
+#     cloner Element Android  →  appliquer notre patch  →  compiler  →  APK
+#
+#  Résultat : un APK téléchargeable depuis l'onglet « Actions » de GitHub,
+#  sans rien installer sur l'ordinateur de l'équipe.
+#
+#  Déclenchement : manuel (bouton « Run workflow »), ou à chaque modification
+#  du patch sur la branche main.
+
+name: APK Kibaré
+
+on:
+  # Bouton « Run workflow » dans l'onglet Actions.
+  workflow_dispatch:
+    inputs:
+      variante:
+        description: "Variante à compiler"
+        type: choice
+        default: debug
+        options:
+          - debug      # signée avec la clé de test d'Element → INSTALLABLE
+          - release    # non signée → NON installable (contrôle de compilation)
+  # Recompile automatiquement quand le fork change.
+  push:
+    branches: [main]
+    paths:
+      - "docs/android-fork.patch"
+      - ".github/workflows/apk.yml"
+
+# Un seul build à la fois : un nouveau pousse annule le précédent.
+concurrency:
+  group: apk-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  construire:
+    name: Construire l'APK
+    runs-on: ubuntu-latest
+    # Element Android est volumineux : on laisse largement le temps.
+    timeout-minutes: 90
+
+    env:
+      # Version d'Element Android sur laquelle le patch a été préparé.
+      # À ne changer qu'après avoir revérifié que le patch s'applique.
+      ELEMENT_REF: main
+      VARIANTE: ${{ github.event.inputs.variante || 'debug' }}
+
+    steps:
+      - name: Récupérer le dépôt Kibaré (pour le patch)
+        uses: actions/checkout@v4
+        with:
+          path: kibare
+
+      - name: Cloner Element Android
+        run: |
+          git clone --depth 1 --branch "$ELEMENT_REF" \
+            https://github.com/element-hq/element-android.git element-android
+          cd element-android
+          echo "Version d'Element utilisée : $(git log --oneline -1)"
+
+      # Étape décisive : si le patch ne s'applique pas, on s'arrête ici avec
+      # un message clair, plutôt que de compiler un fork incomplet.
+      - name: Appliquer les modifications Kibaré
+        working-directory: element-android
+        run: |
+          PATCH=../kibare/docs/android-fork.patch
+          echo "Fichiers modifiés par le patch : $(grep -c '^diff --git' $PATCH)"
+          echo "Dont fichiers binaires        : $(grep -c 'GIT binary patch' $PATCH)"
+
+          if ! git apply --check "$PATCH"; then
+            echo "::error::Le patch ne s'applique pas sur cette version d'Element Android."
+            echo "::error::Causes possibles : Element a changé en amont, ou le patch a été"
+            echo "::error::regénéré sans l'option --binary (voir docs/ANDROID_FORK.md §10)."
+            exit 1
+          fi
+
+          git apply "$PATCH"
+          echo "Patch appliqué. Fichiers touchés : $(git status --porcelain | wc -l)"
+
+      # Contrôle que les fichiers binaires sont bien arrivés : c'est
+      # exactement le défaut qui s'était glissé dans une version du patch.
+      - name: Vérifier que l'icône et les polices sont présentes
+        working-directory: element-android
+        run: |
+          manquant=0
+          for f in \
+            library/ui-styles/src/main/res/font/ibm_plex_sans_regular.ttf \
+            library/ui-styles/src/main/res/font/ibm_plex_sans_bold.ttf \
+            vector-app/src/main/res/mipmap-xxxhdpi/ic_launcher.png \
+            vector-app/src/main/res/drawable-anydpi-v26/ic_launcher_foreground.xml
+          do
+            if [ -s "$f" ]; then
+              echo "OK      $f ($(stat -c%s "$f") octets)"
+            else
+              echo "::error::Fichier absent ou vide : $f"
+              manquant=1
+            fi
+          done
+          exit $manquant
+
+      - name: Installer Java 21
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "21"
+
+      - name: Installer le SDK Android
+        uses: android-actions/setup-android@v3
+
+      - name: Préparer Gradle (avec cache)
+        uses: gradle/actions/setup-gradle@v4
+        with:
+          build-root-directory: element-android
+          cache-read-only: false
+
+      - name: Compiler l'APK (variante F-Droid, ${{ env.VARIANTE }})
+        working-directory: element-android
+        run: |
+          if [ "$VARIANTE" = "release" ]; then
+            cible=assembleFdroidRelease
+          else
+            cible=assembleFdroidDebug
+          fi
+          echo "Cible Gradle : $cible"
+          ./gradlew "$cible" --no-daemon --stacktrace
+
+      - name: Lister les APK produits
+        working-directory: element-android
+        run: |
+          echo "APK trouvés :"
+          find vector-app/build/outputs/apk -name '*.apk' -printf '  %p  (%s octets)\n'
+
+      - name: Mettre l'APK à disposition
+        uses: actions/upload-artifact@v4
+        with:
+          name: kibare-apk-${{ env.VARIANTE }}
+          path: element-android/vector-app/build/outputs/apk/fdroid/**/*.apk
+          if-no-files-found: error
+          retention-days: 30
+
+      # Les journaux de compilation ne sont conservés que si ça rate :
+      # ce sont eux qui disent POURQUOI.
+      - name: Conserver les rapports en cas d'échec
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: rapports-echec
+          path: |
+            element-android/**/build/reports/**
+            element-android/**/build/outputs/logs/**
+          retention-days: 7
+          if-no-files-found: ignore
