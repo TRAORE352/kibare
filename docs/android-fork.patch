@@ -3908,7 +3908,7 @@ index e40c61c..09300ac 100644
 -
  </network-security-config>
 diff --git a/vector-app/build.gradle b/vector-app/build.gradle
-index 40b2edb..fc380df 100644
+index 40b2edb..c5a1983 100644
 --- a/vector-app/build.gradle
 +++ b/vector-app/build.gradle
 @@ -143,7 +143,7 @@ android {
@@ -3920,7 +3920,21 @@ index 40b2edb..fc380df 100644
          // Set to API 21: see #405
          minSdk versions.minSdk
          targetSdk versions.targetSdk
-@@ -247,7 +247,7 @@ android {
+@@ -168,6 +168,13 @@ android {
+ 
+         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+ 
++        // KIBARÉ : seules les langues utiles sont incluses.
++        // Element embarque plus de 60 traductions, ce qui pèse une dizaine de
++        // méga-octets dans la table des ressources. L'administration burkinabè
++        // travaille en français ; l'anglais est conservé comme langue de repli
++        // technique d'Android.
++        resourceConfigurations += ["fr", "en"]
++
+         // Keep abiFilter for the universalApk
+         ndk {
+             abiFilters "armeabi-v7a", "x86", 'arm64-v8a', 'x86_64'
+@@ -247,7 +254,7 @@ android {
          debug {
              applicationIdSuffix ".debug"
              signingConfig signingConfigs.debug
@@ -3929,15 +3943,69 @@ index 40b2edb..fc380df 100644
  
              if (project.hasProperty("coverage")) {
                  testCoverageEnabled = project.coverage == "true"
-@@ -255,7 +255,7 @@ android {
+@@ -255,17 +262,28 @@ android {
          }
  
          release {
 -            resValue "string", "app_name", "Element Classic"
 +            resValue "string", "app_name", "Kibaré"
              postprocessing {
-                 // FIXME Set to true.
-                 removeUnusedCode false
+-                // FIXME Set to true.
+-                removeUnusedCode false
++                // KIBARÉ : le code mort est RETIRÉ de l'APK (R8).
++                // Element laisse cette option à false pour garder des rapports
++                // de plantage lisibles. Nous l'activons : l'application embarque
++                // des bibliothèques volumineuses dont nous avons désactivé les
++                // fonctions (visioconférence Jitsi, cartes MapLibre, statistiques).
++                // Sans cette réduction, ce code inutilisé reste dans l'APK et le
++                // fait peser plus de 90 Mo, ce qui complique l'installation.
++                removeUnusedCode true
+                 removeUnusedResources true
+                 // We do not activate obfuscation as it makes it hard then to read crash reports, and it's a bit useless on an open source project :)
+                 obfuscate false
+                 optimizeCode true
+                 proguardFiles 'proguard-rules.pro'
+             }
+-            // signingConfig signingConfigs.release
++            // KIBARÉ : l'APK de démonstration est signé avec la clé de TEST
++            // d'Element, afin qu'il soit réellement installable par le jury.
++            // Un déploiement réel dans l'administration exigerait une clé de
++            // signature propre à l'État, conservée hors du dépôt (voir la note
++            // de sécurité, limite n°12).
++            signingConfig signingConfigs.debug
+         }
+ 
+         nightly {
+diff --git a/vector-app/proguard-rules.pro b/vector-app/proguard-rules.pro
+index 0fed148..59b6a73 100644
+--- a/vector-app/proguard-rules.pro
++++ b/vector-app/proguard-rules.pro
+@@ -22,6 +22,25 @@
+ 
+ -keep class im.vector.app.features.** { *; }
+ 
++# KIBARÉ : conserver nos vues personnalisées et tout le paquet « core ».
++#
++# Pourquoi : nous activons removeUnusedCode (R8) pour alléger l'APK. R8 ne
++# voit pas les classes instanciées depuis un fichier XML de mise en page :
++# il les croit inutilisées et les supprime. L'application planterait alors
++# à l'ouverture d'une conversation avec « ClassNotFoundException:
++# im.vector.app.core.ui.views.WatermarkView ».
++#
++# Notre filigrane (protection « Zéro fuite ») est précisément dans ce cas :
++# il est déclaré dans fragment_timeline.xml et activity_big_image_viewer.xml.
++-keep class im.vector.app.core.** { *; }
++
++# Règle générale de sécurité : toute vue Android référencée depuis un XML
++# doit garder son constructeur (Context, AttributeSet).
++-keepclasseswithmembers class * extends android.view.View {
++    public <init>(android.content.Context, android.util.AttributeSet);
++    public <init>(android.content.Context, android.util.AttributeSet, int);
++}
++
+ ## print all the rules in a file
+ # -printconfiguration ../proguard_files/full-r8-config.txt
+ 
 diff --git a/vector-app/src/main/res/drawable-anydpi-v26/ic_launcher_foreground.xml b/vector-app/src/main/res/drawable-anydpi-v26/ic_launcher_foreground.xml
 index a02583e..83d1861 100644
 --- a/vector-app/src/main/res/drawable-anydpi-v26/ic_launcher_foreground.xml
