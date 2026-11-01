@@ -22,7 +22,13 @@
     # Certificat serveur signé par la CA locale (généré par scripts/init.sh)
     tls /etc/caddy/kibare-server.crt /etc/caddy/kibare-server.key
 
-    # En-têtes de sécurité
+    # En-têtes de sécurité appliqués à la Console et aux API.
+    #
+    # ATTENTION : ces en-têtes ne sont PAS appliqués à Keycloak (/auth/*).
+    # La règle « script-src 'self' » interdit les scripts écrits directement
+    # dans la page, dont Keycloak se sert pour son écran de connexion : la
+    # page de connexion restait blanche. Keycloak envoie sa propre politique
+    # de sécurité, adaptée à ses pages ; on la laisse faire.
     header {
         Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self'; connect-src 'self' wss:; frame-ancestors 'none'; base-uri 'self'; form-action 'self'"
         X-Frame-Options "DENY"
@@ -30,6 +36,21 @@
         Referrer-Policy "strict-origin-when-cross-origin"
         Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=()"
         -Server
+    }
+
+    # Keycloak — authentification (préfixe /auth)
+    #
+    # Placé AVANT les en-têtes ci-dessus ne suffirait pas : dans Caddy, la
+    # directive « header » du site s'applique à toutes les réponses. On retire
+    # donc explicitement, pour ces seules adresses, les deux règles qui
+    # empêchent l'écran de connexion de fonctionner. Les autres protections
+    # (type de contenu, référent, permissions) restent en place.
+    handle /auth/* {
+        header {
+            -Content-Security-Policy
+            -X-Frame-Options
+        }
+        reverse_proxy keycloak:8080
     }
 
     # Health check de la porte d'entrée
@@ -51,11 +72,6 @@
     # Synapse — API d'administration
     handle /_synapse/* {
         reverse_proxy synapse:8008
-    }
-
-    # Keycloak — authentification (préfixe /auth)
-    handle /auth/* {
-        reverse_proxy keycloak:8080
     }
 
     # Console Kibaré — administration
