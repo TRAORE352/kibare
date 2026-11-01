@@ -110,7 +110,11 @@ Nous préférons les énoncer clairement plutôt que de les laisser découvrir.
    bloquables par le système).
 6. **Navigateur** (Element Web) : protections réduites.
 7. **Métadonnées** visibles par le serveur (voir section 5).
-8. **CA locale** à installer sur le téléphone pour l'écran de connexion.
+8. **Autorité de certification** : l'autorité de l'État est **embarquée dans
+   l'application** — aucune installation manuelle sur le téléphone. Sur un
+   ordinateur en revanche, le navigateur affichera un avertissement sur la
+   Console tant que `caddy/kibare-ca.crt` n'est pas ajouté à son magasin de
+   certificats.
 9. **Prototype** : pas de haute disponibilité, pas de sauvegarde automatique,
    pas d'audit de sécurité externe.
 10. **Pièces jointes non images** : la visionneuse PDF interne n'est pas
