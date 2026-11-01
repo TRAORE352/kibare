@@ -57,6 +57,25 @@ Puis sur un téléphone Android :
 2. Installer l'APK Kibaré (variante F-Droid, téléchargeable via le lien d'activation émis par la Console).
 3. Ouvrir l'app, se connecter via SSO Keycloak (matricule + mot de passe + code OTP FreeOTP/Aegis).
 
+## Télécharger l'APK déjà compilé (le plus simple)
+
+Le dépôt compile l'application automatiquement. Pour obtenir l'APK sans rien
+installer :
+
+1. Ouvrir l'onglet **[Actions](../../actions)** du dépôt.
+2. Cliquer sur la dernière exécution verte d'« APK Kibaré ».
+3. En bas de la page, télécharger l'artefact **kibare-apk-debug**.
+4. L'archive contient deux fichiers, un par type de processeur :
+
+| Fichier | Pour quel téléphone |
+|---|---|
+| `vector-fdroid-arm64-v8a-debug.apk` | tout téléphone vendu depuis 2016 — **choisir celui-ci par défaut** |
+| `vector-fdroid-armeabi-v7a-debug.apk` | appareils d'entrée de gamme plus anciens (32 bits) |
+
+Un seul des deux s'installe sur un téléphone donné ; si le premier est refusé,
+prendre le second. L'APK est signé avec la clé de test d'Element, il s'installe
+donc directement (« Autoriser cette source » à la première installation).
+
 ## Compiler l'APK en local (sans aucun service en ligne)
 
 La messagerie **ne dépend d'aucun service externe** pour fonctionner. L'APK se
