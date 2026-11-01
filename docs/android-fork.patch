@@ -3908,7 +3908,7 @@ index e40c61c..09300ac 100644
 -
  </network-security-config>
 diff --git a/vector-app/build.gradle b/vector-app/build.gradle
-index 40b2edb..c5a1983 100644
+index 40b2edb..16655ac 100644
 --- a/vector-app/build.gradle
 +++ b/vector-app/build.gradle
 @@ -143,7 +143,7 @@ android {
@@ -3920,10 +3920,11 @@ index 40b2edb..c5a1983 100644
          // Set to API 21: see #405
          minSdk versions.minSdk
          targetSdk versions.targetSdk
-@@ -168,6 +168,13 @@ android {
+@@ -168,9 +168,19 @@ android {
  
          testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
  
+-        // Keep abiFilter for the universalApk
 +        // KIBARÉ : seules les langues utiles sont incluses.
 +        // Element embarque plus de 60 traductions, ce qui pèse une dizaine de
 +        // méga-octets dans la table des ressources. L'administration burkinabè
@@ -3931,10 +3932,44 @@ index 40b2edb..c5a1983 100644
 +        // technique d'Android.
 +        resourceConfigurations += ["fr", "en"]
 +
-         // Keep abiFilter for the universalApk
++        // KIBARÉ : seuls les processeurs des téléphones Android réels.
++        // Element inclut aussi x86 et x86_64, qui ne servent qu'aux émulateurs
++        // sur ordinateur. Les retirer supprime deux fichiers de l'archive de
++        // téléchargement sans rien changer sur un vrai téléphone.
          ndk {
-             abiFilters "armeabi-v7a", "x86", 'arm64-v8a', 'x86_64'
-@@ -247,7 +254,7 @@ android {
+-            abiFilters "armeabi-v7a", "x86", 'arm64-v8a', 'x86_64'
++            abiFilters "armeabi-v7a", 'arm64-v8a'
+         }
+ 
+         // Ref: https://developer.android.com/studio/build/configure-apk-splits.html
+@@ -180,17 +190,19 @@ android {
+                 // Enables building multiple APKs per ABI.
+                 enable true
+ 
+-                // By default all ABIs are included, so use reset() and include to specify that we only
+-                // want APKs for armeabi-v7a, x86, arm64-v8a and x86_64.
+-
+                 // Resets the list of ABIs that Gradle should create APKs for to none.
+                 reset()
+ 
+-                // Specifies a list of ABIs that Gradle should create APKs for.
+-                include "armeabi-v7a", "x86", "arm64-v8a", "x86_64"
++                // KIBARÉ : arm64-v8a couvre tous les téléphones vendus depuis
++                // 2016 ; armeabi-v7a reste pour les appareils d'entrée de gamme
++                // plus anciens, encore courants au Burkina Faso.
++                include "armeabi-v7a", "arm64-v8a"
+ 
+-                // Generate a universal APK that includes all ABIs, so user who install from CI tool can use this one by default.
+-                universalApk true
++                // KIBARÉ : pas d'APK « universal ». Il contenait les quatre
++                // architectures à la fois et pesait à lui seul 181 Mo, alors
++                // qu'il n'apporte rien : chaque téléphone n'utilise que la
++                // bibliothèque de son propre processeur.
++                universalApk false
+             }
+         }
+ 
+@@ -247,7 +259,7 @@ android {
          debug {
              applicationIdSuffix ".debug"
              signingConfig signingConfigs.debug
@@ -3943,7 +3978,7 @@ index 40b2edb..c5a1983 100644
  
              if (project.hasProperty("coverage")) {
                  testCoverageEnabled = project.coverage == "true"
-@@ -255,17 +262,28 @@ android {
+@@ -255,17 +267,28 @@ android {
          }
  
          release {
