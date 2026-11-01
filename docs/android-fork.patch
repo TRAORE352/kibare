@@ -6607,6 +6607,120 @@ index 9878f1e..ac4457b 100644
      app:codeBlockBackgroundDrawable="@drawable/bg_code_block"
      app:inlineCodeSingleLineBg="@drawable/bg_inline_code_single_line"
      app:inlineCodeMultiLineBgLeft="@drawable/bg_inline_code_multi_line_left"
+diff --git a/vector/src/main/res/raw/kibare_ca.pem b/vector/src/main/res/raw/kibare_ca.pem
+new file mode 100644
+index 0000000..ad60bc0
+--- /dev/null
++++ b/vector/src/main/res/raw/kibare_ca.pem
+@@ -0,0 +1,32 @@
++-----BEGIN CERTIFICATE-----
++MIIFezCCA2OgAwIBAgIUd+FY6uIRlYr0bB32qzr2Zxdw2LIwDQYJKoZIhvcNAQEL
++BQAwTTEfMB0GA1UEAwwWS2liYXLDg8KpIENBIChEw4PCiU1PKTESMBAGA1UECgwJ
++S2liYXLDg8KpMRYwFAYDVQQLDA1IYWNrYXRob24gMjI2MB4XDTI2MTAzMDA5NDY1
++OVoXDTM2MTAyNzA5NDY1OVowTTEfMB0GA1UEAwwWS2liYXLDg8KpIENBIChEw4PC
++iU1PKTESMBAGA1UECgwJS2liYXLDg8KpMRYwFAYDVQQLDA1IYWNrYXRob24gMjI2
++MIICIjANBgkqhkiG9w0BAQEFAAOCAg8AMIICCgKCAgEA1Rz2OOepqq5KjcS564er
++/gkWdR1FD+QHwfUJYYgps/T5ucnPdTuj6q+yGd0qPmk++wUAAs+UvBF7i07VSgjB
++eCWxgZgVKIGrw/WVANgQECDsDDwu1ZDfcaP6z03vz5v24k4Kkk60YU2p1eiw8qjz
++UQXvofVyg7oSRMv5Qehi0OLBAq46BtPVROW9qNjvTSMY5FD/r0yErZ4CS7oqQKUM
++d/KPiSyzFIDSfaq3cGgmaLUa5BvrculnS5vsdFVVFlhsJT9OhMhLyoIkWIxGL9E8
++npHNYCtdGL52ZU07YyTYLMieiYqHApPaeNsNj+bb/2nZuyk4fY1uAsVAoLRo8FZT
++mdtuq6n4///x+4urWFQucEzm7FnHIURh/On7+qFDgMZloHp0CyZCrtgLOzdR+ul0
++HGekcv/0dvMqO/1LksVMfyKTT28Amrccc+6Zr99pyWNqfUkVFZv66HlZS26Wl/r/
++NKqKzjWXZEJddsqZDVEZrqu4IEwzlXTto9S/l+O+OD1HL5iD/XaMGP3/5cJ7rqWk
++cR8x+bBiTzl/e3dsZz7JhigHMkF4KHKLXvo2todgFyJxnQxA0UlRLylQXSmhEXDV
++FlnVS1OSiTaXRFKDxZ6vTlRfggdUhAc7iY7xtainjAvT/lg9GEHJTZsSeiNpapri
++Sm9X1mcPYCwxH918ZUVscUECAwEAAaNTMFEwHQYDVR0OBBYEFDIhLXPcrhI5rJrg
++bLFTWga7oHCOMB8GA1UdIwQYMBaAFDIhLXPcrhI5rJrgbLFTWga7oHCOMA8GA1Ud
++EwEB/wQFMAMBAf8wDQYJKoZIhvcNAQELBQADggIBAMtzCmOtUG8tv/EmnJiVIt8Z
++ES+L/es5aKvjRz6MK2wZ2AqbT8vDhkA9PVbCfpDlN4nxwn8sbp60ftZBt+gWMIZR
++3Dzhk4CtbwL0jCfMpd5AWSInZPmn670wWZR8hqQCJcDS3P0Xhrt2m2wswY94JO8y
++uXKeuRcpOtM2FbL06oTD3LbTcrDYuktf/GU2sKHz+cOcOxO+xvr3+4HCJFUBKRdN
++emdhj00ql5ZDomN3hYrAfas7HduM0mZkOq/2Du4VSJft6JloW39aJx56kDXNfAPd
++Zy//PMQDXYM+nbCCxO5b9/dBNjg77qE6qbp5gC5yvo2Dh5If42nFwfjJt4q+VAfp
++JhoBpK5rUhE32HSzhZRShe+XVO8f+zoKuUkSx7nBMH1NjTP4yO+pgyN2jUQPKlKJ
++mvEujB80Ths9pVZV44CytqMhovuFsHJ3LxfjkGYtiLtrQ2PjXQnKvObJwDU8TDQC
++Cae1DlnoWA6rLeLncNuu1R6oupicXdTtt/N4wL4b1HHEpI+jdsGo4145L+l8Q7hO
++8So7Hi1XvoPB6XMAgWKD/MkSMpmKH5JbrkfMlyXy35L5iGpEj0/h1udsXQ9SATeF
++Zh9pgW6rJjZeWEj6IXDbqkZj2wRov/RGANPUyVnmOtOP9wcWOWvwGGY8UAX5ecz+
++hG/tDuxuDxExWwkO9fEQ
++-----END CERTIFICATE-----
+diff --git a/vector/src/main/res/xml/network_security_config.xml b/vector/src/main/res/xml/network_security_config.xml
+index b9f3d03..6fe1c1a 100644
+--- a/vector/src/main/res/xml/network_security_config.xml
++++ b/vector/src/main/res/xml/network_security_config.xml
+@@ -1,35 +1,46 @@
+ <?xml version="1.0" encoding="utf-8"?>
+ <network-security-config>
+-    <!-- Ref: https://developer.android.com/training/articles/security-config.html -->
+-    <!-- By default, do not allow clearText traffic -->
+-    <base-config cleartextTrafficPermitted="false" />
++    <!--
++        KIBARÉ — l'autorité de certification de l'État est embarquée dans
++        l'application.
+ 
+-    <!-- Allow clearText traffic on some specified host -->
++        Pourquoi ce fichier et pas celui de matrix-sdk-android : les deux
++        modules déclarent une ressource « network_security_config ». À la
++        fusion, celle du module applicatif (vector) l'emporte. Modifier
++        uniquement celle du SDK ne produit donc AUCUN effet : l'autorité
++        Kibaré n'est jamais chargée et le téléphone affiche « non sécurisé ».
++
++        Conséquence pratique voulue : l'agent n'a RIEN à installer. L'APK
++        suffit, le certificat de l'État voyage avec lui. Plus d'étape
++        « Installer un certificat » dans les paramètres Android, plus
++        d'avertissement rouge, et surtout plus de certificat installé à la
++        main que l'agent pourrait retirer par erreur.
++
++        Seule l'autorité Kibaré est acceptée — PAS les autorités publiques
++        préinstallées par Google. L'application ne peut donc parler qu'au
++        serveur de l'administration : un serveur usurpé muni d'un certificat
++        acheté dans le commerce est rejeté.
++    -->
++    <base-config cleartextTrafficPermitted="false">
++        <trust-anchors>
++            <certificates src="@raw/kibare_ca" />
++        </trust-anchors>
++    </base-config>
++
++    <!--
++        Trafic en clair toléré uniquement sur la machine de développement et
++        l'émulateur Android. Aucune adresse de production ici.
++    -->
+     <domain-config cleartextTrafficPermitted="true">
+-        <!-- Localhost -->
+         <domain includeSubdomains="true">localhost</domain>
+         <domain includeSubdomains="true">127.0.0.1</domain>
+-        <!-- Localhost for Android emulator -->
+         <domain includeSubdomains="true">10.0.2.2</domain>
+-        <!-- Onion services -->
+-        <domain includeSubdomains="true">onion</domain>
+-
+-        <!-- Domains that are used for LANs -->
+-        <!-- These are IANA recognized special use domain names, see https://www.iana.org/assignments/special-use-domain-names/special-use-domain-names.xhtml -->
+-        <domain includeSubdomains="true">home.arpa</domain>
+-        <domain includeSubdomains="true">local</domain> <!-- Note this has been reserved for use with mDNS -->
+-        <domain includeSubdomains="true">test</domain>
+-        <!-- These are observed in the wild either by convention or RFCs that have not been accepted, and are not currently TLDs -->
+-        <domain includeSubdomains="true">home</domain>
+-        <domain includeSubdomains="true">lan</domain>
+-        <domain includeSubdomains="true">localdomain</domain>
+     </domain-config>
+ 
+-    <debug-overrides>
+-        <trust-anchors>
+-            <certificates src="system" />
+-            <certificates src="user" />
+-        </trust-anchors>
+-    </debug-overrides>
+-
++    <!--
++        KIBARÉ : les « debug-overrides » d'Element acceptaient les autorités
++        du système ET celles ajoutées par l'utilisateur. Retiré : cela
++        rouvrait exactement la porte que la configuration ci-dessus ferme,
++        sur la variante que nous distribuons pour la démonstration.
++    -->
+ </network-security-config>
 diff --git a/vector/src/main/res/xml/vector_settings_advanced_settings.xml b/vector/src/main/res/xml/vector_settings_advanced_settings.xml
 index 56609fe..5a3d4c1 100644
 --- a/vector/src/main/res/xml/vector_settings_advanced_settings.xml

@@ -100,6 +100,35 @@ def analyser(chemin):
         print("\n3. Identité et sécurité intégrées")
         verifier("Certificat de la CA locale embarqué (res/raw/kibare_ca.pem)",
                  any("kibare_ca" in n for n in noms))
+
+        # Contrôle décisif : le certificat peut être PRÉSENT dans l'APK sans
+        # être UTILISÉ. Element déclare une ressource « network_security_config »
+        # dans deux modules (vector et matrix-sdk-android) ; à la fusion, celle
+        # du module applicatif l'emporte. Si seule celle du SDK est modifiée,
+        # l'autorité Kibaré n'est jamais chargée et le téléphone affiche
+        # « connexion non sécurisée », alors que le fichier .pem est bien là.
+        #
+        # On lit donc la configuration réseau compilée. Le XML binaire d'Android
+        # conserve les noms en clair : la présence de « trust-anchors » et
+        # « certificates » et l'ABSENCE des domaines propres à Element
+        # (« onion », « home.arpa ») prouvent que c'est bien NOTRE fichier.
+        config_reseau = b""
+        for n in noms:
+            if n.endswith("res/xml/network_security_config.xml"):
+                config_reseau = apk.read(n)
+                break
+        lisible = config_reseau.decode("latin-1")
+        verifier("Configuration réseau présente dans l'APK",
+                 bool(config_reseau))
+        verifier("L'autorité Kibaré est réellement déclarée comme seule de confiance",
+                 "trust-anchors" in lisible and "certificates" in lisible
+                 and "onion" not in lisible,
+                 "sinon c'est la configuration d'Element qui a écrasé la nôtre : "
+                 "le certificat est embarqué mais jamais utilisé")
+        verifier("Pas de dérogation acceptant les autorités du téléphone",
+                 "debug-overrides" not in lisible,
+                 "une dérogation « system/user » rouvrirait la porte fermée ci-dessus")
+
         verifier("Police IBM Plex Sans embarquée",
                  any("ibm_plex_sans" in n.lower() for n in noms))
 
