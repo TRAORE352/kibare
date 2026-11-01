@@ -207,3 +207,57 @@ Trois lots de modifications ont été ajoutés au fork (détail dans
 Android SDK dans le conteneur de l'agent). Les contrôles ci-dessus sont
 statiques — ils ne remplacent pas un `assembleFdroidRelease` vert, qui reste à
 faire sur la machine de build de l'équipe.
+
+## Épreuves du jury automatisées (1er novembre)
+
+Les trois épreuves de la section 12 du brief tournent désormais pour de vrai :
+`./scripts/run_tests.sh` → **13 tests unitaires + 16 vérifications d'épreuve**.
+
+| Épreuve | Vérifications |
+|---|---|
+| Intrus | connexion refusée, inscription libre refusée |
+| Le serveur ne lit rien | message chiffré envoyé ET déchiffré, introuvable en base, aucun `m.room.message` en clair, stocké en `m.room.encrypted`, absent des journaux |
+| Révocation | jeton valide avant, `M_UNKNOWN_TOKEN` après, sans `soft_logout`, reconnexion impossible |
+
+Le chiffrement employé est le **vrai** Olm/Megolm, via `matrix-nio[e2e]`
+(ISC / Apache-2.0). Aucune ligne de cryptographie n'est écrite par l'équipe.
+
+### Pourquoi une instance Synapse de test séparée
+
+La production est **OIDC-seulement** (`password_config.enabled: false`), ce qui
+est voulu : un mot de passe Synapse contournerait l'enrôlement et l'OTP. Or un
+client automatisé ne sait pas dérouler un flux OIDC, qui demande un navigateur.
+
+`tests/integration/instance_test.py` crée donc une instance jetable, identique à
+la production **sauf** la connexion par mot de passe et les limites de débit.
+La configuration de production n'est jamais modifiée.
+
+### Ces tests ont été éprouvés par mutation
+
+Un test toujours vert ne prouve rien. En cassant volontairement le chiffrement,
+la série tombe à **11/16** et le test **trouve le message en clair dans la base**
+(`1 occurrence`). Avec le chiffrement actif : `0 occurrence`. La vérification
+distingue donc réellement les deux situations.
+
+### Deux pièges rencontrés, corrigés
+
+1. **Le test se bloquait lui-même.** En enchaînant plusieurs connexions, il
+   déclenchait la protection anti-force-brute de Synapse, recevait un HTTP 429
+   et interprétait ce refus comme un échec du produit. Les limites sont relevées
+   dans l'instance de test uniquement ; la protection reste active en production.
+2. **Un faux vert sur l'épreuve éliminatoire.** Un ancien Synapse occupait le
+   port, le nouveau ne démarrait pas, et les tests lisaient une base vide : « le
+   message est introuvable » passait au vert sans rien prouver. Désormais
+   l'instance libère le port avant de démarrer, et le test compte les événements
+   en base avant de conclure quoi que ce soit.
+
+### Détail technique utile pour la soutenance
+
+Le premier essai échouait sur « le destinataire déchiffre bien le message ».
+Cause réelle : les clients n'avaient pas **publié** leurs clés d'appareil
+(`keys_upload`). Le serveur ne connaissait donc aucun appareil, l'envoyeur
+n'avait personne à qui remettre la clé de session Megolm, et le destinataire
+recevait un message indéchiffrable. C'est exactement le mécanisme qui protège
+Kibaré : **la clé de session n'est remise qu'aux appareils connus et vérifiés au
+moment de l'envoi**. Un appareil qui apparaît après coup — par exemple celui
+d'un agent révoqué puis réactivé — ne reçoit jamais les anciennes clés.
