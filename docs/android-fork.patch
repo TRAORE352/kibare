@@ -6121,10 +6121,10 @@ index 2280a26..149e6d5 100644
          if (session.myUserId != timelineEvent.root.senderId) {
 diff --git a/vector/src/main/java/im/vector/app/features/kibare/KibareSsoWebActivity.kt b/vector/src/main/java/im/vector/app/features/kibare/KibareSsoWebActivity.kt
 new file mode 100644
-index 0000000..404c07e
+index 0000000..a32b4c5
 --- /dev/null
 +++ b/vector/src/main/java/im/vector/app/features/kibare/KibareSsoWebActivity.kt
-@@ -0,0 +1,223 @@
+@@ -0,0 +1,224 @@
 +/*
 + * Kibaré — connexion SSO à l'intérieur de l'application.
 + *
@@ -6159,6 +6159,7 @@ index 0000000..404c07e
 +import android.os.Build
 +import android.os.Bundle
 +import android.view.ViewGroup
++import android.webkit.SslCertificate
 +import android.webkit.SslErrorHandler
 +import android.webkit.WebResourceRequest
 +import android.webkit.WebView
@@ -6279,7 +6280,7 @@ index 0000000..404c07e
 +        }
 +
 +        val paquet = Bundle()
-+        android.webkit.SslCertificate.saveState(paquet, certificatSsl)
++        SslCertificate.saveState(paquet, certificatSsl)
 +        val octets = paquet.getByteArray(CLE_CERTIFICAT) ?: return null
 +        return try {
 +            CertificateFactory.getInstance("X.509")
