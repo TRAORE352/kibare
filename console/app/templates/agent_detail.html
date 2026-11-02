@@ -10,11 +10,11 @@
     <p class="sous-titre">
       Matricule <strong class="tabulaire">{{ agent.matricule }}</strong>
       &nbsp;·&nbsp;
-      {% if agent.status.value == 'actif' %}
+      {% if agent.status.value == 'active' %}
         <span class="etiquette etiquette-actif">Actif</span>
-      {% elif agent.status.value == 'attente' %}
+      {% elif agent.status.value == 'pending' %}
         <span class="etiquette etiquette-attente">En attente d'activation</span>
-      {% elif agent.status.value == 'revoque' %}
+      {% elif agent.status.value == 'revoked' %}
         <span class="etiquette etiquette-revoque">Révoqué</span>
       {% else %}
         <span class="etiquette etiquette-neutre">{{ agent.status.value }}</span>
@@ -58,7 +58,7 @@
 <p class="encadre">Aucun appareil connu. L'agent ne s'est pas encore connecté.</p>
 {% endif %}
 
-{% if agent.status.value != 'revoque' %}
+{% if agent.status.value != 'revoked' %}
 <h2>Révocation de l'accès</h2>
 
 <div class="carte carte-danger">

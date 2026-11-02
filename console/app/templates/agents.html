@@ -10,9 +10,13 @@
   <a class="btn" href="/console/agents/enroll">Enrôler un agent</a>
 </div>
 
-{% set actifs   = agents | selectattr("status.value", "equalto", "actif")   | list | length %}
-{% set attente  = agents | selectattr("status.value", "equalto", "attente") | list | length %}
-{% set revoques = agents | selectattr("status.value", "equalto", "revoque") | list | length %}
+{# Les valeurs comparées sont celles de l'enum AgentStatus (app/models.py) :
+   active / pending / revoked. Une comparaison aux mots français ("actif",
+   "attente", "revoque") ne correspond à aucun statut : les trois compteurs
+   affichaient 0 en permanence, y compris avec des agents actifs en base. #}
+{% set actifs   = agents | selectattr("status.value", "equalto", "active")  | list | length %}
+{% set attente  = agents | selectattr("status.value", "equalto", "pending") | list | length %}
+{% set revoques = agents | selectattr("status.value", "equalto", "revoked") | list | length %}
 
 <div class="indicateurs">
   <div class="indicateur">
@@ -61,11 +65,11 @@
           </span>
         </td>
         <td>
-          {% if a.status.value == 'actif' %}
+          {% if a.status.value == 'active' %}
             <span class="etiquette etiquette-actif">Actif</span>
-          {% elif a.status.value == 'attente' %}
+          {% elif a.status.value == 'pending' %}
             <span class="etiquette etiquette-attente">En attente</span>
-          {% elif a.status.value == 'revoque' %}
+          {% elif a.status.value == 'revoked' %}
             <span class="etiquette etiquette-revoque">Révoqué</span>
           {% else %}
             <span class="etiquette etiquette-neutre">{{ a.status.value }}</span>
