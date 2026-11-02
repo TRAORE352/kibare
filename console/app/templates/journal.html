@@ -1,21 +1,45 @@
 {% extends "base.html" %}
 {% block title %}Journal — Console Kibaré{% endblock %}
 {% block content %}
-<h1>Journal des révocations</h1>
-<p class="muted">Qui a révoqué qui, quand, et pour quel motif. Aucun contenu de message.</p>
-<table class="table">
-  <thead><tr><th>Date</th><th>Agent</th><th>Révoqué par</th><th>Motif</th></tr></thead>
-  <tbody>
-  {% for l in logs %}
-    <tr>
-      <td>{{ l.date_revocation }}</td>
-      <td>{{ l.agent_matricule }}</td>
-      <td>{{ l.revoque_par }}</td>
-      <td>{{ l.motif or "—" }}</td>
-    </tr>
-  {% else %}
-    <tr><td colspan="4" class="muted">Aucune révocation.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+
+<div class="entete-page">
+  <div class="texte">
+    <h1>Journal des révocations</h1>
+    <p class="sous-titre">
+      Traçabilité des accès retirés : qui, par qui, quand et pourquoi.
+    </p>
+  </div>
+</div>
+
+<p class="encadre">
+  Ce journal ne contient aucun contenu de message. Les échanges sont chiffrés
+  de bout en bout et restent illisibles pour le serveur comme pour
+  l'administration.
+</p>
+
+<div class="table-enveloppe" style="margin-top:var(--e5)">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Date</th>
+        <th>Agent révoqué</th>
+        <th>Révoqué par</th>
+        <th>Motif</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for l in logs %}
+      <tr>
+        <td class="tabulaire">{{ l.date_revocation }}</td>
+        <td class="matricule">{{ l.agent_matricule }}</td>
+        <td>{{ l.revoque_par }}</td>
+        <td>{{ l.motif or "—" }}</td>
+      </tr>
+    {% else %}
+      <tr><td colspan="4" class="vide">Aucune révocation enregistrée.</td></tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 {% endblock %}

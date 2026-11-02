@@ -1,13 +1,40 @@
 {% extends "base.html" %}
 {% block title %}Agent enrôlé — Console Kibaré{% endblock %}
 {% block content %}
-<h1>Agent enrôlé</h1>
-<p>{{ agent.prenom }} {{ agent.nom }} ({{ agent.matricule }}) est en attente d'activation.</p>
-<p class="muted">Transmettez ce lien à l'agent en main propre. Il est à usage unique et expire
-   dans {{ ttl_hours }} heures.</p>
-<div class="qr-block">
-  <img src="{{ qr }}" alt="QR code d'activation">
-  <p><code>{{ activation_url }}</code></p>
+
+<div class="message message-succes" role="status">
+  Compte créé pour {{ agent.prenom }} {{ agent.nom }} ({{ agent.matricule }}).
 </div>
-<p><a class="btn" href="/console/agents">Retour au tableau</a></p>
+
+<div class="entete-page">
+  <div class="texte">
+    <h1>Lien d'activation</h1>
+    <p class="sous-titre">
+      À remettre à l'agent <strong>en main propre</strong>. Usage unique,
+      valable {{ ttl_hours }} heures.
+    </p>
+  </div>
+</div>
+
+<div class="carte" style="max-width:520px">
+  <div class="carte-corps">
+
+    <div class="qr-block">
+      <img src="{{ qr }}" alt="Code QR du lien d'activation" width="196" height="196">
+      <code>{{ activation_url }}</code>
+    </div>
+
+    <p class="encadre">
+      Ce lien ne sera plus affiché. Il expire automatiquement et ne peut servir
+      qu'une fois : si l'agent ne l'utilise pas, il faudra le régénérer.
+    </p>
+
+    <div class="form-actions">
+      <a class="btn" href="/console/agents">Retour aux agents</a>
+      <a class="btn btn-secondaire" href="/console/agents/enroll">Enrôler un autre agent</a>
+    </div>
+
+  </div>
+</div>
+
 {% endblock %}

@@ -23,5 +23,5 @@ async def journal(request: Request, db: AsyncSession = Depends(get_db),
         select(RevocationLog).order_by(RevocationLog.date_revocation.desc()).limit(200)
     )).scalars().all()
     return templates.TemplateResponse("journal.html", {
-        "request": request, "logs": logs, "admin": admin,
+        "request": request, "logs": logs, "admin": admin, "page": "journal",
     })

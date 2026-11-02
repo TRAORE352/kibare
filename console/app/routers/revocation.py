@@ -28,7 +28,7 @@ async def do_revoke(request: Request, matricule: str,
     if confirmation.strip().lower() != matricule.strip().lower():
         return templates.TemplateResponse("agent_detail.html", {
             "request": request, "agent": await _get_agent(db, matricule),
-            "devices": [], "admin": admin,
+            "devices": [], "admin": admin, "page": "agents",
             "error": "La confirmation ne correspond pas au matricule.",
         }, status_code=400)
 

@@ -1,35 +1,95 @@
 {% extends "base.html" %}
-{% block title %}Fiche agent — Console Kibaré{% endblock %}
+{% block title %}{{ agent.prenom }} {{ agent.nom }} — Console Kibaré{% endblock %}
 {% block content %}
-<h1>{{ agent.prenom }} {{ agent.nom }}</h1>
-<p class="muted">Matricule : {{ agent.matricule }}</p>
-<table class="table">
-  <tr><th>Ministère</th><td>{{ agent.ministere.value }}</td></tr>
-  <tr><th>Direction</th><td>{{ agent.direction }}</td></tr>
-  <tr><th>Service</th><td>{{ agent.service or "—" }}</td></tr>
-  <tr><th>Fonction</th><td>{{ agent.fonction }}</td></tr>
-  <tr><th>Rôle</th><td>{{ agent.role.value }}</td></tr>
-  <tr><th>Statut</th><td>{{ agent.status.value }}</td></tr>
-  <tr><th>Enrôlé le</th><td>{{ agent.date_enrolement }}</td></tr>
-</table>
+
+<p class="discret"><a href="/console/agents">← Retour aux agents</a></p>
+
+<div class="entete-page">
+  <div class="texte">
+    <h1>{{ agent.prenom }} {{ agent.nom }}</h1>
+    <p class="sous-titre">
+      Matricule <strong class="tabulaire">{{ agent.matricule }}</strong>
+      &nbsp;·&nbsp;
+      {% if agent.status.value == 'actif' %}
+        <span class="etiquette etiquette-actif">Actif</span>
+      {% elif agent.status.value == 'attente' %}
+        <span class="etiquette etiquette-attente">En attente d'activation</span>
+      {% elif agent.status.value == 'revoque' %}
+        <span class="etiquette etiquette-revoque">Révoqué</span>
+      {% else %}
+        <span class="etiquette etiquette-neutre">{{ agent.status.value }}</span>
+      {% endif %}
+    </p>
+  </div>
+</div>
+
+<div class="carte">
+  <div class="carte-entete"><h2>Rattachement administratif</h2></div>
+  <div class="carte-corps">
+    <table class="table table-def">
+      <tr><th>Ministère</th>   <td>{{ agent.ministere.value }}</td></tr>
+      <tr><th>Direction</th>   <td>{{ agent.direction }}</td></tr>
+      <tr><th>Service</th>     <td>{{ agent.service or "—" }}</td></tr>
+      <tr><th>Fonction</th>    <td>{{ agent.fonction }}</td></tr>
+      <tr><th>Rôle</th>        <td>{{ agent.role.value }}</td></tr>
+      <tr><th>Enrôlé le</th>   <td class="tabulaire">{{ agent.date_enrolement }}</td></tr>
+    </table>
+  </div>
+</div>
 
 <h2>Appareils connectés</h2>
+<p class="sous-titre">Terminaux sur lesquels cet agent possède une session ouverte.</p>
+
 {% if devices %}
-<ul>
-  {% for d in devices %}<li>{{ d.get('device_id') }} — {{ d.get('last_seen_ts') }}</li>{% endfor %}
-</ul>
+<div class="table-enveloppe">
+  <table class="table">
+    <thead><tr><th>Identifiant d'appareil</th><th>Dernière activité</th></tr></thead>
+    <tbody>
+      {% for d in devices %}
+      <tr>
+        <td class="matricule">{{ d.get('device_id') }}</td>
+        <td class="tabulaire">{{ d.get('last_seen_ts') or "—" }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% else %}
-<p class="muted">Aucun appareil connu.</p>
+<p class="encadre">Aucun appareil connu. L'agent ne s'est pas encore connecté.</p>
 {% endif %}
 
-<h2 class="danger-title">Révoquer cet agent</h2>
-<p class="muted">Action irréversible : coupe l'accès immédiatement (Keycloak + Synapse) et
-   efface les données de l'appareil à la prochaine connexion.</p>
-<form method="post" action="/console/agents/{{ agent.matricule }}/revoke" class="form">
-  <label>Retapez le matricule pour confirmer
-    <input name="confirmation" required>
-  </label>
-  <label>Motif (facultatif) <input name="motif"></label>
-  <button class="btn btn-danger" type="submit">Révoquer</button>
-</form>
+{% if agent.status.value != 'revoque' %}
+<h2>Révocation de l'accès</h2>
+
+<div class="carte carte-danger">
+  <div class="carte-entete"><h2>Action irréversible</h2></div>
+  <div class="carte-corps">
+    <p>La révocation prend effet immédiatement :</p>
+    <ul class="muted">
+      <li>le compte est désactivé et toutes les sessions sont fermées ;</li>
+      <li>les jetons sont supprimés sur l'ensemble des appareils ;</li>
+      <li>l'agent quitte les salons et ne peut plus lire les messages suivants ;</li>
+      <li>à la prochaine tentative de connexion, l'application efface ses données locales.</li>
+    </ul>
+
+    <form method="post" action="/console/agents/{{ agent.matricule }}/revoke" class="form">
+      <label>
+        Saisir le matricule pour confirmer
+        <span class="aide">Tapez exactement <strong>{{ agent.matricule }}</strong>.</span>
+        <input name="confirmation" required autocomplete="off"
+               placeholder="{{ agent.matricule }}">
+      </label>
+      <label>
+        Motif <span class="aide">Facultatif — conservé au journal.</span>
+        <input name="motif" placeholder="Mutation, fin de fonction…">
+      </label>
+      <div class="form-actions">
+        <button class="btn btn-danger" type="submit">Révoquer cet accès</button>
+        <a class="btn btn-secondaire" href="/console/agents">Annuler</a>
+      </div>
+    </form>
+  </div>
+</div>
+{% endif %}
+
 {% endblock %}

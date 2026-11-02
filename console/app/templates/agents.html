@@ -1,31 +1,88 @@
 {% extends "base.html" %}
 {% block title %}Agents — Console Kibaré{% endblock %}
 {% block content %}
-<h1>Agents</h1>
-<p class="muted">Matricule, ministère, fonction et statut des agents enrôlés.</p>
-<p><a class="btn" href="/console/agents/enroll">Enrôler un agent</a></p>
-<table class="table">
-  <thead>
-    <tr>
-      <th>Matricule</th><th>Nom</th><th>Ministère</th><th>Direction</th>
-      <th>Fonction</th><th>Rôle</th><th>Statut</th><th></th>
-    </tr>
-  </thead>
-  <tbody>
-  {% for a in agents %}
-    <tr>
-      <td>{{ a.matricule }}</td>
-      <td>{{ a.prenom }} {{ a.nom }}</td>
-      <td>{{ a.ministere.value }}</td>
-      <td>{{ a.direction }}</td>
-      <td>{{ a.fonction }}</td>
-      <td>{{ a.role.value }}</td>
-      <td>{{ a.status.value }}</td>
-      <td><a href="/console/agents/{{ a.matricule }}">Fiche</a></td>
-    </tr>
-  {% else %}
-    <tr><td colspan="8" class="muted">Aucun agent.</td></tr>
-  {% endfor %}
-  </tbody>
-</table>
+
+<div class="entete-page">
+  <div class="texte">
+    <h1>Agents</h1>
+    <p class="sous-titre">Comptes enrôlés, leur rattachement et leur état d'accès.</p>
+  </div>
+  <a class="btn" href="/console/agents/enroll">Enrôler un agent</a>
+</div>
+
+{% set actifs   = agents | selectattr("status.value", "equalto", "actif")   | list | length %}
+{% set attente  = agents | selectattr("status.value", "equalto", "attente") | list | length %}
+{% set revoques = agents | selectattr("status.value", "equalto", "revoque") | list | length %}
+
+<div class="indicateurs">
+  <div class="indicateur">
+    <div class="valeur">{{ agents | length }}</div>
+    <div class="libelle">Agents enrôlés</div>
+  </div>
+  <div class="indicateur">
+    <div class="valeur">{{ actifs }}</div>
+    <div class="libelle">Accès actifs</div>
+  </div>
+  <div class="indicateur">
+    <div class="valeur">{{ attente }}</div>
+    <div class="libelle">En attente d'activation</div>
+  </div>
+  <div class="indicateur">
+    <div class="valeur">{{ revoques }}</div>
+    <div class="libelle">Accès révoqués</div>
+  </div>
+</div>
+
+<div class="table-enveloppe">
+  <table class="table">
+    <thead>
+      <tr>
+        <th>Matricule</th>
+        <th>Agent</th>
+        <th>Ministère</th>
+        <th>Direction</th>
+        <th>Fonction</th>
+        <th>Rôle</th>
+        <th>État</th>
+        <th><span class="visuellement-cache">Actions</span></th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for a in agents %}
+      <tr>
+        <td class="matricule">{{ a.matricule }}</td>
+        <td class="nom">{{ a.prenom }} {{ a.nom }}</td>
+        <td>{{ a.ministere.value }}</td>
+        <td class="direction">{{ a.direction }}</td>
+        <td>{{ a.fonction }}</td>
+        <td>
+          <span class="role {% if a.role.value != 'agent' %}role-admin{% endif %}">
+            {{ a.role.value }}
+          </span>
+        </td>
+        <td>
+          {% if a.status.value == 'actif' %}
+            <span class="etiquette etiquette-actif">Actif</span>
+          {% elif a.status.value == 'attente' %}
+            <span class="etiquette etiquette-attente">En attente</span>
+          {% elif a.status.value == 'revoque' %}
+            <span class="etiquette etiquette-revoque">Révoqué</span>
+          {% else %}
+            <span class="etiquette etiquette-neutre">{{ a.status.value }}</span>
+          {% endif %}
+        </td>
+        <td><a href="/console/agents/{{ a.matricule }}">Consulter</a></td>
+      </tr>
+    {% else %}
+      <tr>
+        <td colspan="8" class="vide">
+          Aucun agent enrôlé pour le moment.<br>
+          <a href="/console/agents/enroll">Enrôler le premier agent</a>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
 {% endblock %}

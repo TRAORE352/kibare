@@ -34,14 +34,14 @@ async def list_agents(request: Request, db: AsyncSession = Depends(get_db),
         query = query.where(Agent.ministere == admin.ministere)
     agents = (await db.execute(query.order_by(Agent.matricule))).scalars().all()
     return templates.TemplateResponse("agents.html", {
-        "request": request, "agents": agents, "admin": admin,
+        "request": request, "agents": agents, "admin": admin, "page": "agents",
     })
 
 
 @router.get("/agents/enroll", response_class=HTMLResponse)
 async def enroll_form(request: Request, admin: Agent = Depends(get_current_admin)):
     return templates.TemplateResponse("enroll.html", {
-        "request": request, "admin": admin,
+        "request": request, "admin": admin, "page": "agents",
         "ministeres": ALL_MINISTERES,
         "roles": [r.value for r in AgentRole],
         "error": None,
@@ -65,7 +65,7 @@ async def do_enroll(request: Request, db: AsyncSession = Depends(get_db),
             db, request.app.state.keycloak, request.app.state.synapse, data, admin)
     except HTTPException as exc:
         return templates.TemplateResponse("enroll.html", {
-            "request": request, "admin": admin,
+            "request": request, "admin": admin, "page": "agents",
             "ministeres": ALL_MINISTERES,
             "roles": [r.value for r in AgentRole],
             "error": exc.detail,
@@ -73,7 +73,7 @@ async def do_enroll(request: Request, db: AsyncSession = Depends(get_db),
 
     activation_url = f"{settings.SERVER_ADDRESS}/activer/{token_clear}"
     return templates.TemplateResponse("enroll_result.html", {
-        "request": request, "agent": agent,
+        "request": request, "agent": agent, "admin": admin, "page": "agents",
         "activation_url": activation_url,
         "qr": qr_data_uri(activation_url),
         "ttl_hours": settings.ACTIVATION_TOKEN_TTL_HOURS,
@@ -104,4 +104,5 @@ async def agent_detail(request: Request, matricule: str,
 
     return templates.TemplateResponse("agent_detail.html", {
         "request": request, "agent": agent, "devices": devices, "admin": admin,
+        "page": "agents",
     })

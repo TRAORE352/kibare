@@ -31,4 +31,5 @@ async def directory(request: Request, db: AsyncSession = Depends(get_db),
 
     return templates.TemplateResponse("directory.html", {
         "request": request, "by_ministere": by_ministere, "admin": admin,
+        "page": "annuaire",
     })

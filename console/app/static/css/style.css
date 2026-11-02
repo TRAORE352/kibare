@@ -1,82 +1,450 @@
-/* style.css — Console Kibaré
-   Identité visuelle : sobre, éditoriale, institutionnelle.
-   Vert foncé institutionnel, fond blanc cassé, rouge réservé aux alertes. */
+/* =====================================================================
+   Console Kibaré — feuille de style
+   =====================================================================
 
+   PARTI PRIS
+
+   L'identité visuelle du Burkina Faso est déjà portée par le logo : rouge,
+   vert et étoile jaune. Les répéter en aplats dans l'interface produirait un
+   rendu saturé et daté, et affaiblirait le logo lui-même.
+
+   L'interface est donc construite sur une base claire, aérée et typographiée,
+   où le vert et le rouge n'apparaissent qu'en ACCENTS : un trait, un état,
+   une action. L'autorité institutionnelle se lit dans la retenue.
+
+   Les couleurs sont relevées au pixel sur le logo fourni, pour qu'aucun écart
+   ne soit perceptible entre le logo et l'interface qui l'entoure.
+
+   Référence de finition visée : Stripe, Linear, Notion.
+   ===================================================================== */
+
+/* ---------------------------------------------------------------------
+   1. Jetons de conception
+   --------------------------------------------------------------------- */
 :root {
-  --vert: #1F5C3A;
-  --vert-fonce: #16422A;
-  --fond: #FAFAF7;          /* blanc cassé */
-  --texte: #1F2421;         /* gris très foncé (pas de noir pur) */
-  --muted: #5A645E;
-  --rouge: #B3261E;         /* réservé à la révocation / alertes */
-  --bord: #E3E1DC;
+  /* Couleurs de marque — relevées sur le logo Kibaré */
+  --vert:            #027435;   /* vert du logo */
+  --vert-fonce:      #015526;
+  --vert-clair:      #E8F2EB;
+  --rouge:           #DB1E1D;   /* rouge du logo */
+  --rouge-fonce:     #B01716;
+  --rouge-clair:     #FDECEC;
+  --jaune:           #FECE15;   /* étoile du logo — décoratif uniquement */
+
+  /* Neutres — gris très légèrement chauds, jamais de noir pur */
+  --encre:           #14181B;   /* titres */
+  --texte:           #2E3438;   /* texte courant */
+  --gris:            #646E74;   /* texte secondaire */
+  --gris-clair:      #8A9399;   /* mentions discrètes */
+  --bord:            #E4E7E9;
+  --bord-fort:       #CDD2D5;
+  --surface:         #FFFFFF;
+  --fond:            #FAFBFB;
+  --fond-doux:       #F3F5F6;
+
+  /* États */
+  --succes:          #0A7D3C;
+  --succes-fond:     #E7F4EC;
+  --alerte:          #8A5A00;
+  --alerte-fond:     #FDF4E3;
+
+  /* Élévation — ombres teintées, jamais de gris neutre */
+  --ombre-douce:     0 1px 2px rgba(20, 24, 27, .04),
+                     0 1px 3px rgba(20, 24, 27, .06);
+  --ombre:           0 2px 4px rgba(20, 24, 27, .04),
+                     0 8px 16px -8px rgba(20, 24, 27, .10);
+  --ombre-haute:     0 4px 8px rgba(20, 24, 27, .04),
+                     0 16px 32px -12px rgba(20, 24, 27, .14);
+
+  /* Rayons — conservateurs : une administration n'est pas une application grand public */
+  --r-xs: 4px;
+  --r-sm: 6px;
+  --r-md: 8px;
+  --r-lg: 12px;
+
+  /* Rythme vertical, base 4px */
+  --e1: 4px;  --e2: 8px;  --e3: 12px; --e4: 16px;
+  --e5: 24px; --e6: 32px; --e7: 48px; --e8: 64px;
 }
 
-* { box-sizing: border-box; }
+/* ---------------------------------------------------------------------
+   2. Base
+   --------------------------------------------------------------------- */
+*, *::before, *::after { box-sizing: border-box; }
+
+html { -webkit-text-size-adjust: 100%; }
 
 body {
   margin: 0;
   background: var(--fond);
   color: var(--texte);
-  /* IBM Plex Sans (SIL OFL) ; repli sur les polices système si non embarquée */
   font-family: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif;
-  line-height: 1.5;
+  font-size: 15px;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* Chiffres de largeur fixe : les matricules et les dates s'alignent en colonne. */
+.tabulaire, .table td, code { font-variant-numeric: tabular-nums; }
+
+h1, h2, h3 { color: var(--encre); font-weight: 600; margin: 0; }
+h1 { font-size: 1.65rem; letter-spacing: -.021em; line-height: 1.25; }
+h2 { font-size: 1.1rem;  letter-spacing: -.011em; margin-top: var(--e7); }
+h3 { font-size: .95rem;  letter-spacing: -.006em; }
+
+p { margin: 0 0 var(--e3); }
+
+a { color: var(--vert); text-decoration: none; }
+a:hover { text-decoration: underline; text-underline-offset: 2px; }
+
+.muted      { color: var(--gris); }
+.discret    { color: var(--gris-clair); font-size: .85rem; }
+.sous-titre { color: var(--gris); font-size: .95rem; margin-top: calc(-1 * var(--e2)); }
+
+/* Accessibilité : anneau de focus visible, jamais supprimé. */
+:focus-visible {
+  outline: 2px solid var(--vert);
+  outline-offset: 2px;
+  border-radius: var(--r-xs);
+}
+
+/* ---------------------------------------------------------------------
+   3. En-tête
+   --------------------------------------------------------------------- */
 .topbar {
-  background: var(--vert);
-  color: #fff;
-  border-bottom: 4px solid var(--vert-fonce);
+  background: var(--surface);
+  border-bottom: 1px solid var(--bord);
+  position: sticky;
+  top: 0;
+  z-index: 10;
 }
+
+/* Filet tricolore de 2 px : signature nationale discrète, jamais répétée
+   ailleurs. Les trois bandes sont dans les proportions du drapeau, mais
+   assourdies — un liseré, pas un drapeau. */
+.topbar::after {
+  content: "";
+  display: block;
+  height: 2px;
+  background: linear-gradient(90deg,
+    var(--vert)  0%,   var(--vert)  48%,
+    var(--jaune) 48%,  var(--jaune) 52%,
+    var(--rouge) 52%,  var(--rouge) 100%);
+  opacity: .75;
+}
+
 .topbar-inner {
-  max-width: 1000px; margin: 0 auto; padding: 0.8rem 1rem;
-  display: flex; align-items: center; gap: 1rem; flex-wrap: wrap;
+  max-width: 1120px;
+  margin: 0 auto;
+  padding: var(--e3) var(--e5);
+  display: flex;
+  align-items: center;
+  gap: var(--e4);
 }
-.brand { font-weight: 700; font-size: 1.2rem; letter-spacing: 0.02em; }
-.brand-sub { color: #DCE7DF; font-size: 0.85rem; }
-.nav { margin-left: auto; display: flex; gap: 1rem; }
-.nav a { color: #fff; text-decoration: none; font-size: 0.9rem; }
-.nav a:hover { text-decoration: underline; }
 
-.content { max-width: 1000px; margin: 0 auto; padding: 2rem 1rem; }
-.content.narrow { max-width: 560px; }
-body.public { background: var(--fond); }
+.marque { display: flex; align-items: center; gap: var(--e3); text-decoration: none; }
+.marque:hover { text-decoration: none; }
+.marque-logo { height: 36px; width: auto; display: block; }
+.marque-texte { display: flex; flex-direction: column; line-height: 1.2; }
+.marque-nom {
+  font-weight: 600; font-size: 1.02rem; color: var(--encre); letter-spacing: -.012em;
+}
+.marque-sous { font-size: .76rem; color: var(--gris-clair); letter-spacing: .005em; }
 
-h1 { font-size: 1.6rem; margin-top: 0; }
-h2 { font-size: 1.2rem; margin-top: 2rem; }
-.muted { color: var(--muted); }
+.nav { margin-left: auto; display: flex; align-items: center; gap: var(--e1); }
+.nav a {
+  color: var(--texte);
+  font-size: .89rem;
+  padding: var(--e2) var(--e3);
+  border-radius: var(--r-sm);
+  transition: background .12s ease, color .12s ease;
+}
+.nav a:hover { background: var(--fond-doux); color: var(--encre); text-decoration: none; }
+.nav a.actif { color: var(--vert); background: var(--vert-clair); font-weight: 500; }
+.nav .sortie { color: var(--gris); margin-left: var(--e2); }
 
-a { color: var(--vert); }
+/* ---------------------------------------------------------------------
+   4. Mise en page
+   --------------------------------------------------------------------- */
+.content { max-width: 1120px; margin: 0 auto; padding: var(--e7) var(--e5) var(--e8); }
+.content.narrow { max-width: 540px; }
 
+.entete-page {
+  display: flex; align-items: flex-start; justify-content: space-between;
+  gap: var(--e4); flex-wrap: wrap; margin-bottom: var(--e6);
+}
+.entete-page .texte { flex: 1 1 320px; }
+
+/* ---------------------------------------------------------------------
+   5. Cartes
+   --------------------------------------------------------------------- */
+.carte {
+  background: var(--surface);
+  border: 1px solid var(--bord);
+  border-radius: var(--r-md);
+  box-shadow: var(--ombre-douce);
+}
+.carte-corps { padding: var(--e5); }
+.carte-entete {
+  padding: var(--e4) var(--e5);
+  border-bottom: 1px solid var(--bord);
+  display: flex; align-items: center; justify-content: space-between; gap: var(--e3);
+}
+.carte-entete h2 { margin: 0; font-size: .95rem; }
+
+/* Carte d'action irréversible : le rouge signale, il n'habille pas. */
+.carte-danger { border-color: #F3C9C9; }
+.carte-danger .carte-entete { background: var(--rouge-clair); border-bottom-color: #F3C9C9; }
+.carte-danger .carte-entete h2 { color: var(--rouge-fonce); }
+
+/* Chiffres clés */
+.indicateurs {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: var(--e3); margin-bottom: var(--e6);
+}
+.indicateur {
+  background: var(--surface); border: 1px solid var(--bord);
+  border-radius: var(--r-md); padding: var(--e4) var(--e5);
+}
+.indicateur .valeur {
+  font-size: 1.8rem; font-weight: 600; color: var(--encre);
+  letter-spacing: -.025em; line-height: 1.1; font-variant-numeric: tabular-nums;
+}
+.indicateur .libelle {
+  font-size: .78rem; color: var(--gris); text-transform: uppercase;
+  letter-spacing: .055em; margin-top: var(--e1);
+}
+
+/* ---------------------------------------------------------------------
+   6. Boutons
+   --------------------------------------------------------------------- */
 .btn {
-  display: inline-block; padding: 0.5rem 1rem;
-  background: var(--vert); color: #fff; text-decoration: none;
-  border: none; border-radius: 4px; cursor: pointer; font-size: 0.95rem;
+  display: inline-flex; align-items: center; justify-content: center; gap: var(--e2);
+  padding: var(--e2) var(--e4);
+  min-height: 36px;
+  background: var(--vert); color: #fff;
+  border: 1px solid var(--vert); border-radius: var(--r-sm);
+  font-family: inherit; font-size: .89rem; font-weight: 500;
+  cursor: pointer; text-decoration: none; white-space: nowrap;
+  transition: background .12s ease, border-color .12s ease, box-shadow .12s ease;
 }
-.btn:hover { background: var(--vert-fonce); }
-.btn-danger { background: var(--rouge); }
+.btn:hover {
+  background: var(--vert-fonce); border-color: var(--vert-fonce);
+  text-decoration: none; box-shadow: var(--ombre-douce);
+}
+.btn:active { transform: translateY(.5px); }
 
-.form { display: grid; gap: 0.75rem; max-width: 480px; margin-top: 1rem; }
-.form label { display: grid; gap: 0.25rem; font-size: 0.9rem; }
-.form input, .form select {
-  padding: 0.5rem; border: 1px solid var(--bord); border-radius: 4px;
-  font-size: 0.95rem; background: #fff;
+.btn-secondaire { background: var(--surface); color: var(--texte); border-color: var(--bord-fort); }
+.btn-secondaire:hover { background: var(--fond-doux); border-color: var(--gris-clair); color: var(--encre); }
+
+.btn-danger { background: var(--rouge); border-color: var(--rouge); }
+.btn-danger:hover { background: var(--rouge-fonce); border-color: var(--rouge-fonce); }
+
+.btn-lien { background: none; border: none; color: var(--vert); padding: var(--e2); min-height: auto; }
+.btn-lien:hover { background: var(--vert-clair); box-shadow: none; }
+
+/* ---------------------------------------------------------------------
+   7. Formulaires
+   --------------------------------------------------------------------- */
+.form { display: grid; gap: var(--e4); }
+.form-grille { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: var(--e4); }
+
+.form label { display: grid; gap: var(--e2); font-size: .85rem; font-weight: 500; color: var(--texte); }
+.form .aide { font-weight: 400; font-size: .8rem; color: var(--gris); }
+
+.form input, .form select, .form textarea {
+  width: 100%;
+  padding: var(--e2) var(--e3);
+  min-height: 38px;
+  font-family: inherit; font-size: .92rem; color: var(--encre);
+  background: var(--surface);
+  border: 1px solid var(--bord-fort); border-radius: var(--r-sm);
+  transition: border-color .12s ease, box-shadow .12s ease;
+}
+.form input::placeholder { color: var(--gris-clair); }
+.form input:focus, .form select:focus, .form textarea:focus {
+  outline: none;
+  border-color: var(--vert);
+  box-shadow: 0 0 0 3px rgba(2, 116, 53, .12);
+}
+.form input:disabled { background: var(--fond-doux); color: var(--gris); }
+
+.form-actions { display: flex; gap: var(--e3); align-items: center; margin-top: var(--e2); }
+
+/* ---------------------------------------------------------------------
+   8. Tableaux
+   --------------------------------------------------------------------- */
+.table-enveloppe {
+  background: var(--surface); border: 1px solid var(--bord);
+  border-radius: var(--r-md); overflow: hidden; box-shadow: var(--ombre-douce);
+}
+.table { width: 100%; border-collapse: collapse; }
+.table th {
+  text-align: left; padding: var(--e3) var(--e4);
+  background: var(--fond-doux);
+  font-size: .74rem; font-weight: 600; color: var(--gris);
+  text-transform: uppercase; letter-spacing: .055em;
+  border-bottom: 1px solid var(--bord); white-space: nowrap;
+}
+.table td {
+  padding: var(--e3) var(--e4);
+  font-size: .89rem;
+  border-bottom: 1px solid var(--bord);
+  vertical-align: middle;
+}
+.table tbody tr:last-child td { border-bottom: none; }
+.table tbody tr { transition: background .1s ease; }
+.table tbody tr:hover { background: var(--fond); }
+.table .matricule { font-weight: 500; color: var(--encre); white-space: nowrap; }
+/* Le nom de l'agent et sa direction ne doivent pas se briser en deux
+   lignes : cela désaligne visuellement toute la rangée. */
+.table .nom, .table .direction { white-space: nowrap; }
+.table .vide { text-align: center; color: var(--gris); padding: var(--e7) var(--e4); }
+
+/* Tableau de définition (fiche agent) */
+.table-def th {
+  width: 190px; background: transparent; text-transform: none;
+  letter-spacing: normal; font-size: .85rem; color: var(--gris);
+  font-weight: 500; vertical-align: top;
+}
+.table-def td { color: var(--encre); }
+/* Dernière ligne sans filet : sinon un trait flotte sous le tableau. */
+.table-def tr:last-child th,
+.table-def tr:last-child td { border-bottom: none; }
+
+/* ---------------------------------------------------------------------
+   9. Étiquettes d'état
+   --------------------------------------------------------------------- */
+.etiquette {
+  display: inline-flex; align-items: center; gap: var(--e1);
+  padding: 2px var(--e2);
+  font-size: .76rem; font-weight: 500;
+  border-radius: var(--r-xs); border: 1px solid transparent;
+  white-space: nowrap;
+}
+.etiquette::before { content: ""; width: 5px; height: 5px; border-radius: 50%; background: currentColor; }
+
+.etiquette-actif    { background: var(--succes-fond); color: var(--succes);  border-color: #BFE0CC; }
+.etiquette-attente  { background: var(--alerte-fond); color: var(--alerte);  border-color: #EFD9A8; }
+.etiquette-revoque  { background: var(--rouge-clair); color: var(--rouge-fonce); border-color: #F3C9C9; }
+.etiquette-neutre   { background: var(--fond-doux);   color: var(--gris);    border-color: var(--bord); }
+
+/* Rôle : étiquette sobre, sans pastille, pour ne pas concurrencer l'état.
+   « white-space: nowrap » évite que « admin-ministere » se coupe en deux
+   lignes et déséquilibre la ligne du tableau. */
+.role {
+  font-size: .78rem;
+  color: var(--gris);
+  white-space: nowrap;
+}
+.role-admin { color: var(--vert); font-weight: 500; }
+
+/* ---------------------------------------------------------------------
+   10. Messages
+   --------------------------------------------------------------------- */
+.message {
+  display: flex; gap: var(--e3); align-items: flex-start;
+  padding: var(--e3) var(--e4);
+  border: 1px solid; border-radius: var(--r-sm);
+  font-size: .89rem; margin-bottom: var(--e5);
+}
+.message-erreur  { background: var(--rouge-clair); border-color: #F3C9C9; color: var(--rouge-fonce); }
+.message-succes  { background: var(--succes-fond); border-color: #BFE0CC; color: var(--succes); }
+.message-info    { background: var(--vert-clair);  border-color: #C9E2D2; color: var(--vert-fonce); }
+
+.encadre {
+  background: var(--fond-doux); border: 1px solid var(--bord);
+  border-left: 3px solid var(--bord-fort);
+  border-radius: 0 var(--r-sm) var(--r-sm) 0;
+  padding: var(--e3) var(--e4); font-size: .87rem; color: var(--gris);
 }
 
-.table { width: 100%; border-collapse: collapse; margin-top: 1rem; }
-.table th, .table td {
-  text-align: left; padding: 0.5rem 0.6rem; border-bottom: 1px solid var(--bord);
-  font-size: 0.9rem;
+/* ---------------------------------------------------------------------
+   11. Pages publiques (activation)
+   --------------------------------------------------------------------- */
+body.public {
+  background: var(--fond-doux);
+  min-height: 100vh;
+  display: flex; align-items: center; justify-content: center;
+  padding: var(--e5);
 }
-.table th { color: var(--muted); font-weight: 600; }
-
-.alert {
-  background: #FDEBEA; color: var(--rouge); border: 1px solid var(--rouge);
-  padding: 0.75rem; border-radius: 4px; margin-bottom: 1rem;
+.carte-publique {
+  background: var(--surface);
+  border: 1px solid var(--bord);
+  border-radius: var(--r-lg);
+  box-shadow: var(--ombre-haute);
+  width: 100%; max-width: 440px;
+  overflow: hidden;
+}
+.carte-publique .bandeau {
+  height: 4px;
+  background: linear-gradient(90deg,
+    var(--vert) 0%, var(--vert) 46%,
+    var(--jaune) 46%, var(--jaune) 54%,
+    var(--rouge) 54%, var(--rouge) 100%);
+}
+.carte-publique .corps { padding: var(--e6) var(--e6) var(--e7); }
+.carte-publique .logo { display: block; height: 68px; width: auto; margin: 0 auto var(--e5); }
+.carte-publique h1 { font-size: 1.3rem; text-align: center; margin-bottom: var(--e2); }
+.carte-publique .intro {
+  text-align: center; color: var(--gris); font-size: .92rem;
+  margin: 0 auto var(--e6); max-width: 34ch;
 }
 
-.danger-title { color: var(--rouge); }
+/* Masque un libellé à l'écran tout en le laissant lisible aux lecteurs
+   d'écran — utilisé pour les en-têtes de colonnes d'actions. */
+.visuellement-cache {
+  position: absolute; width: 1px; height: 1px;
+  padding: 0; margin: -1px; overflow: hidden;
+  clip: rect(0 0 0 0); white-space: nowrap; border: 0;
+}
 
-.qr-block { text-align: center; margin: 1.5rem 0; }
-.qr-block img { width: 220px; height: 220px; }
-.qr-block code { word-break: break-all; color: var(--muted); }
+/* ---------------------------------------------------------------------
+   12. Bloc QR (configuration OTP)
+   --------------------------------------------------------------------- */
+.qr-block { text-align: center; margin: var(--e5) 0; }
+.qr-block img {
+  width: 196px; height: 196px;
+  padding: var(--e3); background: var(--surface);
+  border: 1px solid var(--bord); border-radius: var(--r-md);
+}
+.qr-block code {
+  display: block; margin-top: var(--e3);
+  font-family: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .78rem; color: var(--gris); word-break: break-all;
+}
+
+/* ---------------------------------------------------------------------
+   13. Pied de page
+   --------------------------------------------------------------------- */
+.pied {
+  max-width: 1120px; margin: 0 auto;
+  padding: var(--e5);
+  border-top: 1px solid var(--bord);
+  font-size: .8rem; color: var(--gris-clair);
+  display: flex; justify-content: space-between; gap: var(--e4); flex-wrap: wrap;
+}
+
+/* ---------------------------------------------------------------------
+   14. Adaptation aux petits écrans
+   --------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  .content { padding: var(--e5) var(--e4) var(--e7); }
+  .topbar-inner { padding: var(--e3) var(--e4); flex-wrap: wrap; }
+  .marque-sous { display: none; }
+  .nav { width: 100%; margin-left: 0; overflow-x: auto; padding-bottom: var(--e1); }
+  h1 { font-size: 1.35rem; }
+  .table-enveloppe { overflow-x: auto; }
+  .table { min-width: 680px; }
+  .entete-page { flex-direction: column; }
+}
+
+/* ---------------------------------------------------------------------
+   15. Impression — un dossier d'administration finit souvent sur papier.
+   --------------------------------------------------------------------- */
+@media print {
+  .topbar, .nav, .form-actions, .carte-danger, .pied { display: none; }
+  body { background: #fff; font-size: 11pt; }
+  .carte, .table-enveloppe { border-color: #999; box-shadow: none; }
+}

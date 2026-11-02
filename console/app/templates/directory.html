@@ -1,14 +1,42 @@
 {% extends "base.html" %}
 {% block title %}Annuaire — Console Kibaré{% endblock %}
 {% block content %}
-<h1>Annuaire</h1>
-<p class="muted">Agents actifs, par ministère et par fonction.</p>
+
+<div class="entete-page">
+  <div class="texte">
+    <h1>Annuaire</h1>
+    <p class="sous-titre">Agents dont l'accès est actif, classés par ministère.</p>
+  </div>
+</div>
+
 {% for ministere, agents in by_ministere.items() %}
-<h2>{{ ministere }}</h2>
-<ul>
-  {% for a in agents %}<li>{{ a.prenom }} {{ a.nom }} — {{ a.fonction }}</li>{% endfor %}
-</ul>
+<div class="carte" style="margin-bottom:var(--e5)">
+  <div class="carte-entete">
+    <h2>{{ ministere }}</h2>
+    <span class="discret">{{ agents | length }} agent{{ "s" if agents | length > 1 }}</span>
+  </div>
+  <table class="table">
+    <thead>
+      <tr><th>Matricule</th><th>Agent</th><th>Direction</th><th>Fonction</th></tr>
+    </thead>
+    <tbody>
+      {% for a in agents %}
+      <tr>
+        <td class="matricule">{{ a.matricule }}</td>
+        <td class="nom">{{ a.prenom }} {{ a.nom }}</td>
+        <td class="direction">{{ a.direction }}</td>
+        <td>{{ a.fonction }}</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
 {% else %}
-<p class="muted">Aucun agent actif.</p>
+<div class="table-enveloppe">
+  <table class="table">
+    <tbody><tr><td class="vide">Aucun agent actif à ce jour.</td></tr></tbody>
+  </table>
+</div>
 {% endfor %}
+
 {% endblock %}

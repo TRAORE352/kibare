@@ -3,29 +3,50 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="color-scheme" content="light">
   <title>{% block title %}Console Kibaré{% endblock %}</title>
+  <link rel="icon" href="/console/static/img/favicon.ico" sizes="any">
+  <link rel="icon" href="/console/static/img/favicon.png" type="image/png">
   <link rel="stylesheet" href="/console/static/css/style.css">
 </head>
 <body>
+
 <header class="topbar">
   <div class="topbar-inner">
-    <span class="brand">Kibaré</span>
-    <span class="brand-sub">Messagerie souveraine de l'administration</span>
+    <a class="marque" href="/console/agents">
+      <img class="marque-logo" src="/console/static/img/logo-kibare.png"
+           alt="" width="41" height="32">
+      <span class="marque-texte">
+        <span class="marque-nom">Kibaré</span>
+        <span class="marque-sous">Console d'administration</span>
+      </span>
+    </a>
+
     {% if admin is defined and admin %}
-    <nav class="nav">
-      <a href="/console/agents">Agents</a>
-      <a href="/console/annuaire">Annuaire</a>
-      <a href="/console/journal">Journal</a>
-      <a href="/console/logout">Déconnexion</a>
+    <nav class="nav" aria-label="Navigation principale">
+      <a href="/console/agents"   {% if page == 'agents'   %}class="actif" aria-current="page"{% endif %}>Agents</a>
+      <a href="/console/annuaire" {% if page == 'annuaire' %}class="actif" aria-current="page"{% endif %}>Annuaire</a>
+      <a href="/console/journal"  {% if page == 'journal'  %}class="actif" aria-current="page"{% endif %}>Journal</a>
+      <a href="/console/logout" class="sortie">Déconnexion</a>
     </nav>
     {% endif %}
   </div>
 </header>
+
 <main class="content">
   {% if error is defined and error %}
-  <div class="alert">{{ error }}</div>
+  <div class="message message-erreur" role="alert">{{ error }}</div>
+  {% endif %}
+  {% if succes is defined and succes %}
+  <div class="message message-succes" role="status">{{ succes }}</div>
   {% endif %}
   {% block content %}{% endblock %}
 </main>
+
+<footer class="pied">
+  <span>Kibaré — messagerie souveraine de l'administration burkinabè</span>
+  <span>Données de démonstration fictives</span>
+</footer>
+
 </body>
 </html>

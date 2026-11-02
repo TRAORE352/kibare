@@ -1,25 +1,70 @@
 {% extends "base.html" %}
 {% block title %}Enrôler un agent — Console Kibaré{% endblock %}
 {% block content %}
-<h1>Enrôler un agent</h1>
-<p class="muted">Crée le compte (Keycloak + Matrix) et génère un lien d'activation à usage unique.</p>
-<form method="post" action="/console/agents/enroll" class="form">
-  <label>Matricule <input name="matricule" required minlength="3"></label>
-  <label>Prénom <input name="prenom" required></label>
-  <label>Nom <input name="nom" required></label>
-  <label>Ministère
-    <select name="ministere" required>
-      {% for m in ministeres %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
-    </select>
-  </label>
-  <label>Direction <input name="direction" required></label>
-  <label>Service <input name="service"></label>
-  <label>Fonction <input name="fonction" required></label>
-  <label>Rôle
-    <select name="role">
-      {% for r in roles %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
-    </select>
-  </label>
-  <button class="btn" type="submit">Enrôler</button>
-</form>
+
+<p class="discret"><a href="/console/agents">← Retour aux agents</a></p>
+
+<div class="entete-page">
+  <div class="texte">
+    <h1>Enrôler un agent</h1>
+    <p class="sous-titre">
+      Crée le compte d'identité et le compte de messagerie, puis génère un lien
+      d'activation à usage unique.
+    </p>
+  </div>
+</div>
+
+<div class="carte" style="max-width:760px">
+  <div class="carte-corps">
+    <form method="post" action="/console/agents/enroll" class="form">
+
+      <div class="form-grille">
+        <label>
+          Matricule
+          <span class="aide">Identifiant officiel de l'agent.</span>
+          <input name="matricule" required minlength="3" autocomplete="off">
+        </label>
+        <label>
+          Rôle
+          <span class="aide">Détermine l'étendue des droits d'administration.</span>
+          <select name="role">
+            {% for r in roles %}<option value="{{ r }}">{{ r }}</option>{% endfor %}
+          </select>
+        </label>
+      </div>
+
+      <div class="form-grille">
+        <label>Prénom <input name="prenom" required></label>
+        <label>Nom <input name="nom" required></label>
+      </div>
+
+      <label>
+        Ministère
+        <select name="ministere" required>
+          {% for m in ministeres %}<option value="{{ m }}">{{ m }}</option>{% endfor %}
+        </select>
+      </label>
+
+      <div class="form-grille">
+        <label>Direction <input name="direction" required></label>
+        <label>Service <span class="aide">Facultatif.</span><input name="service"></label>
+      </div>
+
+      <label>Fonction <input name="fonction" required></label>
+
+      <p class="encadre">
+        Aucun mot de passe n'est défini ici. L'agent choisira le sien via le lien
+        d'activation, puis configurera son code à usage unique à la première
+        connexion.
+      </p>
+
+      <div class="form-actions">
+        <button class="btn" type="submit">Enrôler l'agent</button>
+        <a class="btn btn-secondaire" href="/console/agents">Annuler</a>
+      </div>
+
+    </form>
+  </div>
+</div>
+
 {% endblock %}
