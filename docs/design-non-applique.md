@@ -30,13 +30,34 @@ Implémenté dans `console/app/templating.py` et appliqué aux trois gabarits qu
 chargent la feuille — y compris `activate.html` et `activated.html`, qui
 n'héritent pas de `base.html`.
 
-### Si le symptôme persiste
-Recharger en vidant le cache : `Ctrl + Maj + R` (`Cmd + Maj + R` sur Mac).
-Puis vérifier que l'URL servie porte bien un `?v=` :
+### Ce qu'il faut faire sur une installation existante
+
+Le code de la console est monté en volume (`./console/app:/app/app:ro`), donc
+la feuille de style, les polices et les gabarits sont relus à chaque requête :
+**un `git pull` suffit** pour ces fichiers, sans reconstruire l'image.
+
+En revanche, `templating.py` est du code Python, chargé une fois au démarrage
+du processus — et `uvicorn` tourne ici **sans** `--reload`. Un redémarrage du
+conteneur est donc nécessaire pour que le versionnage prenne effet :
+
+```bash
+git pull
+docker compose restart console
+```
+
+### Vérifier que c'est pris en compte
 
 ```bash
 curl -s https://<adresse>/console/agents | grep style.css
 ```
+
+La ligne doit contenir `style.css?v=` suivi de dix caractères. Si le `?v=`
+est absent, le conteneur fait encore tourner l'ancien code : le redémarrage
+n'a pas eu lieu.
+
+Côté navigateur, recharger en vidant le cache au moins une fois :
+`Ctrl + Maj + R` (`Cmd + Maj + R` sur Mac). C'est nécessaire uniquement pour
+cette transition — ensuite le versionnage s'en charge.
 
 ---
 
