@@ -40,6 +40,10 @@ android/local.properties
 *.keystore
 *.jks
 captures/
+# Exception : les captures de la vidéo de candidature SONT un livrable,
+# versionné pour que le montage reparte toujours des mêmes images.
+!docs/video/captures/
+!docs/video/captures/*.png
 
 # Éditeurs / OS
 .idea/
