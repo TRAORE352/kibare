@@ -2,6 +2,7 @@
   "realm": "kibare",
   "enabled": true,
   "displayName": "Kibaré — Messagerie souveraine",
+  "loginTheme": "kibare",
   "registrationAllowed": false,
   "registrationEmailAsUsername": false,
   "rememberMe": false,

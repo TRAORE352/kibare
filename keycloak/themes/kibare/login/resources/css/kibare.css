@@ -1,0 +1,307 @@
+/* =====================================================================
+   Kibaré — page de connexion (thème Keycloak)
+   =====================================================================
+
+   C'est le PREMIER écran que voit un administrateur : il doit porter la
+   marque de l'État, pas celle de l'éditeur du logiciel d'authentification.
+
+   PARTI PRIS — identique à celui de la console : fond clair et aéré,
+   typographie soignée, le vert et le rouge du logo en ACCENTS seulement.
+   Les jetons de couleur sont relevés sur le même logo, donc la connexion
+   puis la console ne présentent aucune rupture visuelle.
+
+   PORTÉE : apparence uniquement. Ce thème ne surcharge AUCUN template
+   FreeMarker — pas de logique d'authentification modifiée, rien à
+   re-valider à la montée de version de Keycloak.
+
+   SÉLECTEURS : relevés sur le gabarit réel de keycloak.v2 (template.ftl,
+   login.ftl et theme.properties de la version 26), pas devinés :
+
+     #kc-header-wrapper    l'en-tête, qui rend realm.displayNameHtml
+     #kc-page-title        le titre « Connexion »
+     .pf-v5-c-login__main  la carte
+     #kc-form-login        le formulaire
+     .pf-v5-c-form-control les champs (kcInputClass)
+     .pf-v5-c-button.pf-m-primary  le bouton (kcButtonPrimaryClass)
+     .pf-v5-c-alert.pf-m-danger    les erreurs (kcAlertClass)
+
+   Les variantes sans préfixe de version (.pf-c-*, .card-pf) sont
+   conservées en doublon : elles couvrent les versions antérieures de
+   PatternFly sans rien coûter si elles ne trouvent pas leur cible.
+   ===================================================================== */
+
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("../fonts/ibm-plex-sans-regular.woff2") format("woff2");
+  font-weight: 400; font-style: normal; font-display: swap;
+}
+@font-face {
+  font-family: "IBM Plex Sans";
+  src: url("../fonts/ibm-plex-sans-bold.woff2") format("woff2");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+
+:root {
+  --kb-vert:        #027435;
+  --kb-vert-fonce:  #015526;
+  --kb-rouge:       #DB1E1D;
+  --kb-rouge-clair: #FDECEC;
+  --kb-encre:       #14181B;
+  --kb-texte:       #2E3438;
+  --kb-gris:        #646E74;
+  --kb-bord:        #E4E7E9;
+  --kb-bord-fort:   #CDD2D5;
+  --kb-surface:     #FFFFFF;
+  --kb-fond:        #FAFBFB;
+  --kb-r:           8px;
+  --kb-ombre:       0 1px 2px rgba(20,24,27,.04),
+                    0 4px 12px rgba(20,24,27,.06);
+}
+
+/* --- Fond -------------------------------------------------------------
+   `#keycloak-bg` est l'id du <body> dans template.ftl. Le dégradé est
+   très sourd : il donne de la profondeur sans image à télécharger. */
+html,
+body,
+body#keycloak-bg {
+  background: var(--kb-fond) !important;
+  background-image:
+    radial-gradient(60rem 30rem at 50% -8rem, rgba(2,116,53,.07), transparent 70%) !important;
+  background-repeat: no-repeat !important;
+  font-family: "IBM Plex Sans", "Segoe UI", system-ui, -apple-system, sans-serif !important;
+  color: var(--kb-texte);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Toute la page hérite de la police, y compris les contrôles natifs. */
+input, select, textarea, button, h1, h2, h3, label, p, a, span, div {
+  font-family: inherit;
+}
+
+.pf-v5-c-login,
+.pf-c-login { padding-top: 2.5rem; }
+
+/* --- Carte ------------------------------------------------------------ */
+.pf-v5-c-login__main,
+.pf-c-login__main,
+.card-pf {
+  background: var(--kb-surface) !important;
+  border: 1px solid var(--kb-bord) !important;
+  border-top: 3px solid var(--kb-vert) !important;   /* seule couleur pleine */
+  border-radius: var(--kb-r) !important;
+  box-shadow: var(--kb-ombre) !important;
+  overflow: hidden;
+}
+
+.pf-v5-c-login__main-header,
+.pf-c-login__main-header { padding: 1.75rem 2rem .25rem !important; }
+
+.pf-v5-c-login__main-body,
+.pf-c-login__main-body { padding: 1rem 2rem 2rem !important; }
+
+/* --- En-tête : le logo remplace le nom du realm ------------------------
+   template.ftl rend `realm.displayNameHtml` en texte dans
+   #kc-header-wrapper. On annule ce texte (font-size: 0) et on pose le
+   logo en fond. La hauteur est fixe pour qu'aucun saut de mise en page
+   ne survienne pendant le chargement de l'image. */
+.pf-v5-c-login__header,
+.pf-c-login__header { text-align: center; }
+
+#kc-header-wrapper {
+  display: block;
+  font-size: 0 !important;
+  line-height: 0 !important;
+  color: transparent !important;
+  height: 78px;
+  background: url("../img/logo-kibare.png") center top / auto 52px no-repeat;
+  margin: 0 auto .75rem !important;
+  padding: 0 !important;
+  letter-spacing: normal !important;
+  text-transform: none !important;
+}
+
+/* Sous-titre institutionnel, posé par la CSS pour ne pas toucher au
+   gabarit : il nomme le service sans dépendre du nom du realm. */
+#kc-header-wrapper::after {
+  content: "Console d'administration";
+  display: block;
+  padding-top: 56px;
+  font-size: .8rem;
+  line-height: 1.2;
+  color: var(--kb-gris);
+  font-weight: 400;
+}
+
+/* --- Titre de page ----------------------------------------------------
+   kcLoginMainTitle vaut `pf-v5-c-title pf-m-3xl` : trop gros pour un
+   écran de connexion interne, on le ramène à une échelle éditoriale. */
+#kc-page-title,
+h1#kc-page-title.pf-v5-c-title {
+  font-size: 1.14rem !important;
+  font-weight: 700 !important;
+  color: var(--kb-encre) !important;
+  text-align: center;
+  margin: 0 0 .25rem !important;
+}
+
+/* --- Champs ------------------------------------------------------------
+   PatternFly v5 enveloppe l'input dans un <span class="pf-v5-c-form-control">
+   qui PORTE la bordure ; l'input interne doit rester nu. Styler les deux
+   produit un cadre dans un cadre — défaut constaté au rendu. On habille
+   donc l'enveloppe, et on dénude l'input. */
+.pf-v5-c-form-control,
+.pf-c-form-control {
+  background: var(--kb-surface) !important;
+  border: 1px solid var(--kb-bord-fort) !important;
+  border-radius: 6px !important;
+  color: var(--kb-texte) !important;
+  font-size: .95rem !important;
+  padding: .12rem .2rem !important;
+  height: auto !important;
+  box-shadow: none !important;
+  transition: border-color .15s ease, box-shadow .15s ease;
+}
+
+/* L'input à l'intérieur de l'enveloppe : aucun cadre propre. */
+.pf-v5-c-form-control > input,
+.pf-c-form-control > input,
+#kc-form-login input[type="text"],
+#kc-form-login input[type="password"],
+#kc-form-login input[type="email"] {
+  background: transparent !important;
+  border: 0 !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  outline: none !important;
+  color: var(--kb-texte) !important;
+  font-family: inherit !important;
+  font-size: .95rem !important;
+  padding: .48rem .55rem !important;
+  width: 100%;
+}
+
+/* PatternFly dessine aussi un liseré en ::after sur l'enveloppe : il
+   redoublerait notre bordure au focus. */
+.pf-v5-c-form-control::after,
+.pf-v5-c-form-control::before { display: none !important; }
+
+/* Le focus est porté par l'enveloppe, puisque c'est elle qui a le cadre. */
+.pf-v5-c-form-control:focus-within,
+.pf-c-form-control:focus-within {
+  border-color: var(--kb-vert) !important;
+  box-shadow: 0 0 0 3px rgba(2,116,53,.14) !important;
+  outline: none !important;
+}
+
+.pf-v5-c-form__label-text,
+.pf-c-form__label-text,
+.control-label {
+  color: var(--kb-encre) !important;
+  font-size: .86rem !important;
+  font-weight: 500 !important;
+}
+
+/* L'astérisque « requis » reprend le rouge de la marque. */
+.pf-v5-c-form__label-required { color: var(--kb-rouge) !important; }
+
+/* --- Bouton principal --------------------------------------------------- */
+.pf-v5-c-button.pf-m-primary,
+.pf-c-button.pf-m-primary,
+input[type="submit"].pf-v5-c-button,
+#kc-login {
+  background: var(--kb-vert) !important;
+  border: 1px solid var(--kb-vert) !important;
+  border-radius: 6px !important;
+  color: #FFFFFF !important;
+  font-size: .93rem !important;
+  font-weight: 500 !important;
+  padding: .62rem 1rem !important;
+  transition: background .15s ease, border-color .15s ease;
+}
+
+.pf-v5-c-button.pf-m-primary:hover,
+.pf-c-button.pf-m-primary:hover,
+#kc-login:hover {
+  background: var(--kb-vert-fonce) !important;
+  border-color: var(--kb-vert-fonce) !important;
+}
+
+/* Le focus clavier reste visible : même exigence que sur la console.
+   L'input en est exclu — son enveloppe porte déjà l'anneau de focus
+   (:focus-within ci-dessus), un second contour ferait doublon. */
+.pf-v5-c-button:focus-visible,
+a:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--kb-vert) !important;
+  outline-offset: 2px !important;
+}
+
+/* Le bouton suit immédiatement le dernier champ : PatternFly réserve ici
+   une gouttière prévue pour une case « se souvenir de moi » absente. */
+.pf-v5-c-form__group.pf-m-action { margin-top: .5rem !important; }
+
+/* --- Messages d'erreur --------------------------------------------------
+   kcAlertClass = `pf-v5-c-alert pf-m-inline`. Le liseré rouge porte
+   l'alerte ; le fond reste clair pour que le texte demeure lisible. */
+.pf-v5-c-alert.pf-m-danger,
+.pf-v5-c-alert.pf-m-error,
+.pf-c-alert.pf-m-danger,
+.alert-error {
+  background: var(--kb-rouge-clair) !important;
+  border: 1px solid rgba(219,30,29,.26) !important;
+  border-left: 3px solid var(--kb-rouge) !important;
+  border-radius: 6px !important;
+  font-size: .88rem !important;
+}
+
+.pf-v5-c-alert.pf-m-danger .pf-v5-c-alert__title,
+.pf-v5-c-alert.pf-m-danger .pf-v5-c-alert__description,
+.alert-error .pf-c-alert__title {
+  color: #8A1211 !important;
+}
+
+/* La classe utilitaire pf-v5-u-mb-md du gabarit laisse l'alerte trop près
+   du premier libellé une fois nos paddings appliqués. */
+.pf-v5-c-alert.pf-m-inline { margin-bottom: 1.25rem !important; }
+
+/* Message d'erreur sous un champ (kcInputErrorMessageClass). */
+.kc-feedback-text,
+.pf-m-error .pf-v5-c-helper-text__item-text { color: #8A1211 !important; }
+
+/* --- Liens -------------------------------------------------------------- */
+a,
+.pf-v5-c-button.pf-m-link {
+  color: var(--kb-vert) !important;
+  text-decoration: none;
+}
+a:hover { text-decoration: underline; }
+
+/* --- Pied : mention institutionnelle -------------------------------------
+   Accrochée au pied réel du gabarit (kcLoginFooterBand), pas à un
+   conteneur inventé. */
+.pf-v5-c-login__main-footer-band::after,
+.pf-c-login__main-footer-band::after {
+  content: "Kibaré — messagerie souveraine de l'administration burkinabè";
+  display: block;
+  margin-top: .5rem;
+  text-align: center;
+  font-size: .75rem;
+  color: #8A9399;
+}
+
+/* --- Sélecteur de langue -------------------------------------------------
+   Masqué : la console est en français. Le gabarit ne l'affiche de toute
+   façon que si plusieurs langues sont activées sur le realm — cette règle
+   est une sécurité, pas une dépendance. */
+.pf-v5-c-login__main-header-utilities,
+#login-select-toggle { display: none !important; }
+
+/* --- Mobile -------------------------------------------------------------- */
+@media (max-width: 480px) {
+  .pf-v5-c-login { padding-top: 1.25rem; }
+  .pf-v5-c-login__main-header { padding: 1.35rem 1.15rem .25rem !important; }
+  .pf-v5-c-login__main-body   { padding: .75rem 1.15rem 1.5rem !important; }
+  #kc-header-wrapper { height: 68px; background-size: auto 44px; }
+  #kc-header-wrapper::after { padding-top: 48px; }
+}

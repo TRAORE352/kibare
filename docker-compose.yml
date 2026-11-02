@@ -106,6 +106,10 @@ services:
     volumes:
       - keycloak_data:/opt/keycloak/data
       - ./keycloak/realm-kibare.json:/opt/keycloak/data/import/realm-kibare.json:ro
+      # Thème de connexion Kibaré : la page d'authentification porte la marque
+      # de l'État, pas celle de l'éditeur. Apparence seulement (voir
+      # keycloak/themes/kibare/login/theme.properties).
+      - ./keycloak/themes/kibare:/opt/keycloak/themes/kibare:ro
     networks:
       - kibare-internal
     # --import-realm : importe le realm kibare au premier démarrage
